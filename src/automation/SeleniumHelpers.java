@@ -47,6 +47,10 @@ public class SeleniumHelpers {
         // Wait for at least 3 settings to be present (more lenient for sparse tabs)
         wait.until(ExpectedConditions.numberOfElementsToBeMoreThan(
             By.cssSelector(".property-table .property"), 2));
+        
+        
+        
+        
 
         List<WebElement> rows = driver.findElements(By.cssSelector(".property-table .property"));
 
