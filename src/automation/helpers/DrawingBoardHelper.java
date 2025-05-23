@@ -6,6 +6,7 @@ import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.util.*;
+import java.util.NoSuchElementException;
 
 public class DrawingBoardHelper {
 
@@ -24,7 +25,6 @@ public class DrawingBoardHelper {
 
                 WebElement valueCell = row.findElement(By.cssSelector(".property-value"));
 
-                // Skip noisy button-based settings
                 Set<String> buttonBased = Set.of("Divider Spacing", "Range Values", "Button Color");
                 if (buttonBased.contains(label)) {
                     continue;
@@ -91,5 +91,77 @@ public class DrawingBoardHelper {
         }
 
         return allSettings;
+    }
+
+    // ▼▼▼ New UI-setting methods ▼▼▼
+
+    public static boolean enterTextByLabel(WebDriver driver, String label, String text) {
+        try {
+            WebElement row = findRowByLabel(driver, label);
+            WebElement input = row.findElement(By.cssSelector("input[type='text'], textarea"));
+            input.clear();
+            input.sendKeys(text);
+            return true;
+        } catch (Exception e) {
+            System.out.printf("❌ Failed to enter text '%s' for '%s': %s%n", text, label, e.getMessage());
+            return false;
+        }
+    }
+
+    public static boolean selectDropdownByLabel(WebDriver driver, String label, String visibleText) {
+        try {
+            WebElement row = findRowByLabel(driver, label);
+            WebElement selectElement = row.findElement(By.tagName("select"));
+            Select dropdown = new Select(selectElement);
+            dropdown.selectByVisibleText(visibleText);
+            return true;
+        } catch (Exception e) {
+            System.out.printf("❌ Failed to select dropdown '%s' for '%s': %s%n", visibleText, label, e.getMessage());
+            return false;
+        }
+    }
+
+    public static boolean setCheckboxByLabel(WebDriver driver, String label, boolean checked) {
+        try {
+            WebElement row = findRowByLabel(driver, label);
+            WebElement checkbox = row.findElement(By.cssSelector("input[type='checkbox']"));
+            if (checkbox.isSelected() != checked) {
+                checkbox.click();
+            }
+            return true;
+        } catch (Exception e) {
+            System.out.printf("❌ Failed to set checkbox '%s' for '%s': %s%n", checked, label, e.getMessage());
+            return false;
+        }
+    }
+
+    public static boolean selectRadioByLabel(WebDriver driver, String label, String visibleText) {
+        try {
+            WebElement row = findRowByLabel(driver, label);
+            List<WebElement> radios = row.findElements(By.cssSelector("input[type='radio']"));
+            for (WebElement radio : radios) {
+                String valueLabel = radio.findElement(By.xpath("following-sibling::label")).getText().trim();
+                if (valueLabel.equalsIgnoreCase(visibleText)) {
+                    radio.click();
+                    return true;
+                }
+            }
+            System.out.printf("⚠️ No radio button labeled '%s' found for '%s'%n", visibleText, label);
+            return false;
+        } catch (Exception e) {
+            System.out.printf("❌ Failed to select radio '%s' for '%s': %s%n", visibleText, label, e.getMessage());
+            return false;
+        }
+    }
+
+    private static WebElement findRowByLabel(WebDriver driver, String label) throws NoSuchElementException {
+        List<WebElement> rows = driver.findElements(By.cssSelector(".property-table .property"));
+        for (WebElement row : rows) {
+            String rowLabel = row.findElement(By.cssSelector(".property-name")).getText().trim();
+            if (rowLabel.equalsIgnoreCase(label)) {
+                return row;
+            }
+        }
+        throw new NoSuchElementException("No setting row found with label: " + label);
     }
 }
