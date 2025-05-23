@@ -9,7 +9,8 @@ import org.openqa.selenium.support.ui.Select;
 
 import java.time.Duration;
 
-import static automation.SeleniumHelpers.*;
+import static automation.helpers.ProgressBarHelper.*;
+import static automation.helpers.ElementHelper.*;
 
 public class AddNewLead {
 

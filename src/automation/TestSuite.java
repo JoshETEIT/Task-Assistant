@@ -6,6 +6,8 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import automation.helpers.ProgressBarHelper;
+
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -321,7 +323,7 @@ public class TestSuite {
             stepProgressBar.setString("0% - Step Progress");
             progressBarsPanel.add(stepProgressBar);
             
-            SeleniumHelpers.initializeProgressBars(progressBar, stepProgressBar);
+            ProgressBarHelper.initializeProgress(progressBar, stepProgressBar);
 
             panel.add(progressBarsPanel, BorderLayout.CENTER);  // Add both bars in the center
 
@@ -378,7 +380,7 @@ public class TestSuite {
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
 
         showProgressDialog(s.name);
-        SeleniumHelpers.initializeProgressBars(progressBar, stepProgressBar);
+        ProgressBarHelper.initializeProgress(progressBar, stepProgressBar);
         updateProgress("Opening browser...", 10);
 
         try {

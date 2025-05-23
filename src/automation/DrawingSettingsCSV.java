@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 
-import static automation.SeleniumHelpers.*;
+import static automation.helpers.DrawingBoardHelper.*;
 
 public class DrawingSettingsCSV {
 	
@@ -78,7 +78,7 @@ public class DrawingSettingsCSV {
 	        // Extract settings for the current tile
 	        try {
 	        	// Capture all tabbed settings for the current drawing
-	        	Map<String, Map<String, String>> settingsByTab = SeleniumHelpers.captureAllDrawingTabSettings(driver, wait);
+	        	Map<String, Map<String, String>> settingsByTab = captureAllDrawingTabSettings(driver, wait);
 
 	        	// Flattened row to store tab-prefixed settings
 	        	Map<String, String> row = new LinkedHashMap<>();
