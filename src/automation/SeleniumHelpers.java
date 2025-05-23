@@ -48,10 +48,6 @@ public class SeleniumHelpers {
         wait.until(ExpectedConditions.numberOfElementsToBeMoreThan(
             By.cssSelector(".property-table .property"), 2));
         
-        
-        
-        
-
         List<WebElement> rows = driver.findElements(By.cssSelector(".property-table .property"));
 
         for (WebElement row : rows) {
