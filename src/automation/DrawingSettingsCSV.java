@@ -66,7 +66,6 @@ public class DrawingSettingsCSV {
 	            break;
 	        }
 	        
-	        System.out.println("Fetching settings for tile #" + (i + 1));
 	        String href = tileHrefs.get(i);
 	        
 	        // Open the tile's page by navigating to the href
