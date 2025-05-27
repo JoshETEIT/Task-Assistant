@@ -44,7 +44,7 @@ public class TestSuite {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            String[] options = {"Add Lead", "Save Drawing Settings"};
+            String[] options = {"Add Lead", "Save Drawing Settings", "Inject Drawing Settings"};
             int choice = JOptionPane.showOptionDialog(
                     null,
                     "What action would you like to perform?",
@@ -58,18 +58,17 @@ public class TestSuite {
 
             if (choice == JOptionPane.CLOSED_OPTION) System.exit(0);
             boolean runAddLead = (choice == 0);
+            boolean runInjectSettings = (choice == 2);
 
-            showServerTable(loadServersFromCSV(), runAddLead);
+            showServerTable(loadServersFromCSV(), runAddLead, runInjectSettings);
         });
     }
 
-
-    private static void showServerTable(List<TestSuite.Server> servers, boolean runAddLead) {
-
+    private static void showServerTable(List<TestSuite.Server> servers, boolean runAddLead, boolean runInjectSettings) {
         JFrame frame = new JFrame("Server Management");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(900, 500);
-        frame.setLocationRelativeTo(null); // Center on screen
+        frame.setLocationRelativeTo(null);
 
         String[] columns = {"Name", "URL", "Username", "Select", "Edit", "Delete"};
         DefaultTableModel model = new DefaultTableModel(columns, 0) {
@@ -104,9 +103,8 @@ public class TestSuite {
             if (row >= servers.size()) return;
             frame.dispose();
 
-            new Thread(() -> runSeleniumTest(servers.get(row), runAddLead)).start();
+            new Thread(() -> runSeleniumTest(servers.get(row), runAddLead, runInjectSettings)).start();
         }, servers.size());
-
 
         addButtonColumn(table, 4, "Edit", row -> {
             frame.dispose();
@@ -159,7 +157,7 @@ public class TestSuite {
                 }
             }
 
-            showServerTable(loadServersFromCSV(), true);
+            showServerTable(loadServersFromCSV(), true, false);
         }, -1);
 
         addButtonColumn(table, 5, "Delete", row -> {
@@ -169,7 +167,7 @@ public class TestSuite {
                 servers.remove(row);
                 saveServersToCSV(servers);
                 frame.dispose();
-                showServerTable(loadServersFromCSV(), true);
+                showServerTable(loadServersFromCSV(), true, false);
             }
         }, servers.size());
 
@@ -374,7 +372,7 @@ public class TestSuite {
 
 
 
-    private static void runSeleniumTest(Server s, boolean runAddLead) {
+    private static void runSeleniumTest(Server s, boolean runAddLead, boolean runInjectSettings) {
         WebDriverManager.chromedriver().setup();
         WebDriver driver = new ChromeDriver();
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
@@ -401,8 +399,12 @@ public class TestSuite {
                     System.out.println((success ? "✅" : "❌") + " Test result for " + s.name);
                     driver.get(s.url + "/Home");
                 }
+            } else if (runInjectSettings) {
+            	DrawingSettingsInjector.injectSettingsFromCSV(driver, wait, "drawing_settings.csv");
+                updateProgress("Settings injected.", 100);
+                System.out.println("✅ Injected drawing settings for " + s.name);
             } else {
-            	DrawingSettingsCSV.saveSettings(driver, wait);
+                DrawingSettingsCSV.saveSettings(driver, wait);
                 updateProgress("Settings saved.", 100);
                 System.out.println("✅ Saved drawing settings for " + s.name);
             }
