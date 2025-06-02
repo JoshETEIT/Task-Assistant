@@ -7,7 +7,6 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.util.*;
 import java.util.NoSuchElementException;
-import java.util.AbstractMap;
 
 public class DrawingBoardHelper {
 
@@ -94,7 +93,7 @@ public class DrawingBoardHelper {
         return allSettings;
     }
 
-    // ▼▼▼ UI-setting helpers ▼▼▼
+    // ▼▼▼ New UI-setting methods ▼▼▼
 
     public static boolean enterTextByLabel(WebDriver driver, String label, String text) {
         try {
@@ -164,42 +163,5 @@ public class DrawingBoardHelper {
             }
         }
         throw new NoSuchElementException("No setting row found with label: " + label);
-    }
-
-    // ▼▼▼ Injection method ▼▼▼
-
-    public static void injectSettingsIntoDrawing(WebDriver driver, WebDriverWait wait, Map<String, String> flatSettings) {
-        WebElement addNewButton = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector("div.drawing_inner_box.drawing_button_edit.create")));
-        addNewButton.click();
-
-        wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".property-table")));
-
-        for (Map.Entry<String, String> entry : flatSettings.entrySet()) {
-            String key = entry.getKey();
-            String value = entry.getValue();
-
-            if (!key.contains("|")) continue;
-
-            String[] parts = key.split("\\|");
-            if (parts.length < 2) continue;
-
-            String label = parts[1].trim();
-            String elementType = (parts.length > 2) ? parts[2].trim() : "";
-
-            boolean success = false;
-            if (elementType.equalsIgnoreCase("Checkbox")) {
-                success = setCheckboxByLabel(driver, label, value.equalsIgnoreCase("true") || value.equalsIgnoreCase("yes"));
-            } else if (elementType.equalsIgnoreCase("Drop-down")) {
-                success = selectDropdownByLabel(driver, label, value);
-            } else {
-                success = enterTextByLabel(driver, label, value);
-            }
-
-            if (!success) {
-                System.out.printf("⚠️ Could not set '%s' to '%s' (type: %s)%n", label, value, elementType);
-            }
-        }
-
-        System.out.println("✅ Settings injected.");
     }
 }
