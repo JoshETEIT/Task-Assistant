@@ -3,6 +3,8 @@ package automation;
 import java.io.*;
 import java.util.*;
 
+import com.opencsv.CSVReader;
+
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -12,6 +14,29 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import static automation.helpers.DrawingBoardHelper.captureAllDrawingTabSettings;
 
 public class DrawingSettingsCSV {
+	
+	public static class DrawingSetting {
+	    public String tab;
+	    public String name;
+	    public String type;
+	    public String value;
+
+	    public DrawingSetting(String tab, String name, String type, String value) {
+	        this.tab = tab;
+	        this.name = name;
+	        this.type = type;
+	        this.value = value;
+	    }
+	}
+	
+	public static class DrawingConfiguration {
+	    public String drawingTitle;
+	    public List<DrawingSetting> settings = new ArrayList<>();
+
+	    public void addSetting(DrawingSetting setting) {
+	        settings.add(setting);
+	    }
+	}
 
     public static void saveSettings(WebDriver driver, WebDriverWait wait) {
         wait.until(ExpectedConditions.urlContains("/Home"));
@@ -123,48 +148,66 @@ public class DrawingSettingsCSV {
         }
     }
 
-    public static Map<String, String> loadFromCSV(String filePath) {
-        Map<String, String> settingsMap = new LinkedHashMap<>();
+    public static List<DrawingConfiguration> loadAllRowsFromCSV(String csvPath) {
+        List<DrawingConfiguration> allConfigurations = new ArrayList<>();
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
-            String keyLine = reader.readLine();
-            String valueLine = reader.readLine();
-
-            if (keyLine == null || valueLine == null) {
-                System.out.println("⚠️ CSV missing key or value line");
-                return settingsMap;
+        try (CSVReader csvReader = new CSVReader(new FileReader(csvPath))) {
+            String[] headers = csvReader.readNext();
+            if (headers == null) {
+                System.out.println("❌ CSV is empty.");
+                return allConfigurations;
             }
 
-            String[] keys = keyLine.split("\",\"");
-            String[] values = valueLine.split("\",\"");
-
-            // Strip quotes from first and last element
-            keys[0] = keys[0].replaceFirst("^\"+", "");
-            keys[keys.length - 1] = keys[keys.length - 1].replaceFirst("\"+$", "");
-
-            values[0] = values[0].replaceFirst("^\"+", "");
-            values[values.length - 1] = values[values.length - 1].replaceFirst("\"+$", "");
-
-            for (int i = 0; i < Math.min(keys.length, values.length); i++) {
-                String key = keys[i].trim().replaceAll("^\"|\"$", "");
-                String value = values[i].trim().replaceAll("^\"|\"$", "");
-
-                if (!key.contains("|")) {
-                    System.out.println("⚠️ Skipping malformed key: " + key);
+            // Parse headers to get metadata
+            List<String[]> headerPartsList = new ArrayList<>();
+            for (String column : headers) {
+                if (column.equalsIgnoreCase("Drawing Title")) {
+                    headerPartsList.add(new String[] { "Drawing Title", "", "" });
                     continue;
                 }
 
-                settingsMap.put(key, value);
+                String[] parts = column.split(" \\| ");
+                if (parts.length == 3) {
+                    headerPartsList.add(new String[] { parts[0].trim(), parts[1].trim(), parts[2].trim() });
+                } else {
+                    System.out.println("⚠️ Skipping malformed header: " + column);
+                    headerPartsList.add(null); // Placeholder to keep index in sync
+                }
             }
 
-            System.out.println("🔢 Settings loaded: " + settingsMap.size());
+            String[] values;
+            while ((values = csvReader.readNext()) != null) {
+                DrawingConfiguration config = new DrawingConfiguration();
 
-        } catch (IOException e) {
+                for (int i = 0; i < values.length && i < headerPartsList.size(); i++) {
+                    String[] parts = headerPartsList.get(i);
+                    if (parts == null) continue;
+
+                    String value = values[i].trim();
+
+                    if (parts[0].equals("Drawing Title")) {
+                        config.drawingTitle = value;
+                    } else {
+                        String tab = parts[0];
+                        String name = parts[1];
+                        String type = parts[2];
+
+                        config.addSetting(new DrawingSetting(tab, name, type, value));
+                    }
+                }
+
+                if (config.drawingTitle != null || !config.settings.isEmpty()) {
+                    allConfigurations.add(config);
+                }
+            }
+        } catch (Exception e) {
             System.out.println("❌ Error reading CSV: " + e.getMessage());
+            e.printStackTrace();
         }
 
-        return settingsMap;
+        return allConfigurations;
     }
+
 
 
     private static String escape(String value) {

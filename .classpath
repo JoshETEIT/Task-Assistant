@@ -75,6 +75,11 @@
 	<classpathentry kind="lib" path="C:/Eclipse and testing/Selenium/selenium-java-4.31.0/selenium-safari-driver-4.31.0-sources.jar"/>
 	<classpathentry kind="lib" path="C:/Eclipse and testing/Selenium/selenium-java-4.31.0/selenium-support-4.31.0.jar"/>
 	<classpathentry kind="lib" path="C:/Eclipse and testing/Selenium/selenium-java-4.31.0/selenium-support-4.31.0-sources.jar"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER">
+		<attributes>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="C:/Users/JoshHolden/Downloads/opencsv-5.7.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -1,10 +1,15 @@
 package automation;
 
+import automation.DrawingSettingsCSV.DrawingConfiguration;
+import automation.DrawingSettingsCSV.DrawingSetting;
 import automation.helpers.DrawingBoardHelper;
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.*;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
@@ -61,55 +66,82 @@ public class DrawingSettingsInjector {
                 System.out.println("✅ Editing screen loaded after alert");
             }
 
-            // Step 4: Load settings from CSV
+         // Step 4: Load settings from CSV
             System.out.println("📄 Attempting to load CSV from path: " + csvPath);
-            Map<String, String> settings = DrawingSettingsCSV.loadFromCSV(csvPath);
-            System.out.println("🔢 Settings loaded: " + settings.size());
+            List<DrawingConfiguration> configurations = DrawingSettingsCSV.loadAllRowsFromCSV(csvPath);
+            System.out.println("🔢 Configurations loaded: " + configurations.size());
 
-            for (Map.Entry<String, String> entry : settings.entrySet()) {
-                String key = entry.getKey();
-                String value = entry.getValue();
+            String currentTab = ""; // Track last clicked tab to avoid unnecessary re-clicks
 
-                if (!key.contains("|")) {
-                    System.out.println("⚠️ Skipping invalid key: " + key);
-                    continue;
-                }
+            for (DrawingConfiguration config : configurations) {
+                System.out.println("🎨 Injecting settings for drawing: " + config.drawingTitle);
 
-                String[] parts = key.split("\\|");
-                if (parts.length < 3) {
-                    System.out.println("⚠️ Skipping malformed key: " + key);
-                    continue;
-                }
+                for (DrawingSetting setting : config.settings) {
+                    String tabName = setting.tab.trim();
+                    String label = setting.name.trim();
+                    String type = setting.type.trim();
+                    String value = setting.value.trim();
 
-                String tabName = parts[0].trim();
-                String label = parts[1].trim();
-                String type = parts[2].trim().toLowerCase();
-                String normalizedType = type.toLowerCase().replaceAll("[\\s\\-]", "");
+                    if (tabName.isEmpty() || label.isEmpty() || type.isEmpty()) {
+                        System.out.printf("⚠️ Skipping incomplete setting: %s | %s | %s%n", tabName, label, type);
+                        continue;
+                    }
 
-                try {
-                    System.out.println("🔄 Injecting: " + tabName + " | " + label + " | " + type + " = " + value);
-                    switch (normalizedType) {
-                    case "textbox":
-                    case "textfield":
-                        DrawingBoardHelper.enterTextByLabel(driver, label, value);
-                        break;
-                    case "dropdown":
-                    case "dropdownbox":
-                        DrawingBoardHelper.selectDropdownByLabel(driver, label, value);
-                        break;
-                    case "checkbox":
-                        DrawingBoardHelper.setCheckboxByLabel(driver, label, Boolean.parseBoolean(value));
-                        break;
-                    case "radiobutton":
-                        DrawingBoardHelper.selectRadioByLabel(driver, label, value);
-                        break;
-                    default:
-                        System.out.println("❓ Unknown element type: " + type);
-                }
-                } catch (Exception e) {
-                    System.out.println("⚠️ Failed to inject setting: " + label + " → " + e.getMessage());
+                    try {
+                        // Only switch tabs when necessary
+                        if (!tabName.equals(currentTab)) {
+                            System.out.println("➡️ Attempting to find tab: '" + tabName + "'");
+                            List<WebElement> tabElements = driver.findElements(By.cssSelector(".tree-node"));
+
+                            boolean found = false;
+                            for (WebElement tab : tabElements) {
+                                String tabText = tab.findElement(By.className("tree-text")).getText().trim();
+                                if (tabText.equalsIgnoreCase(tabName)) {
+                                    System.out.println("✔️ Clicking tab: '" + tabText + "'");
+                                    ((JavascriptExecutor) driver).executeScript("arguments[0].click();", tab);
+                                    Thread.sleep(700); // Allow content to update
+                                    currentTab = tabName;
+                                    found = true;
+                                    break;
+                                }
+                            }
+
+                            if (!found) {
+                                System.out.println("❌ Could not find tab: " + tabName + " – skipping setting.");
+                                continue;
+                            }
+                        }
+
+                        String normalizedType = type.toLowerCase().replaceAll("[\\s\\-]", "");
+                        //System.out.println("🔄 Injecting: " + tabName + " | " + label + " | " + type + " = " + value);
+
+                        switch (normalizedType) {
+                            case "textbox":
+                            case "textfield":
+                                DrawingBoardHelper.enterTextByLabel(driver, label, value);
+                                break;
+                            case "dropdown":
+                            case "dropdownbox":
+                                DrawingBoardHelper.selectDropdownByLabel(driver, label, value);
+                                break;
+                            case "checkbox":
+                                DrawingBoardHelper.setCheckboxByLabel(driver, label, Boolean.parseBoolean(value));
+                                break;
+                            case "radiobutton":
+                                DrawingBoardHelper.selectRadioByLabel(driver, label, value);
+                                break;
+                            default:
+                                System.out.println("❓ Unknown element type: " + type);
+                        }
+                    } catch (Exception e) {
+                        System.out.println("⚠️ Failed to inject setting: " + label + " → " + e.getMessage());
+                    }
                 }
             }
+
+
+
+
 
             System.out.println("✅ Settings injection completed.");
 
