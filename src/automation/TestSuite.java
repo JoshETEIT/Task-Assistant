@@ -1,7 +1,11 @@
 package automation;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -44,7 +48,12 @@ public class TestSuite {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            String[] options = {"Add Lead", "Save Drawing Settings", "Inject Drawing Settings"};
+        	String[] options = {
+        		    "Add Lead", 
+        		    "Save Drawing Settings", 
+        		    "Inject Drawing Settings",
+        		    "Upload Part Image"  // New option
+        		};
             int choice = JOptionPane.showOptionDialog(
                     null,
                     "What action would you like to perform?",
@@ -59,12 +68,17 @@ public class TestSuite {
             if (choice == JOptionPane.CLOSED_OPTION) System.exit(0);
             boolean runAddLead = (choice == 0);
             boolean runInjectSettings = (choice == 2);
-
-            showServerTable(loadServersFromCSV(), runAddLead, runInjectSettings);
+            boolean runUploadImage = (choice == 3);
+            showServerTable(loadServersFromCSV(), runAddLead, runInjectSettings, runUploadImage);
         });
     }
 
-    private static void showServerTable(List<TestSuite.Server> servers, boolean runAddLead, boolean runInjectSettings) {
+    private static void showServerTable(
+    	    List<TestSuite.Server> servers, 
+    	    boolean runAddLead, 
+    	    boolean runInjectSettings,
+    	    boolean runUploadImage  // New parameter
+    	) {
         JFrame frame = new JFrame("Server Management");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(900, 500);
@@ -103,7 +117,7 @@ public class TestSuite {
             if (row >= servers.size()) return;
             frame.dispose();
 
-            new Thread(() -> runSeleniumTest(servers.get(row), runAddLead, runInjectSettings)).start();
+            new Thread(() -> runSeleniumTest(servers.get(row), runAddLead, runInjectSettings, runUploadImage)).start();
         }, servers.size());
 
         addButtonColumn(table, 4, "Edit", row -> {
@@ -157,7 +171,7 @@ public class TestSuite {
                 }
             }
 
-            showServerTable(loadServersFromCSV(), true, false);
+            showServerTable(loadServersFromCSV(), false, false, false);
         }, -1);
 
         addButtonColumn(table, 5, "Delete", row -> {
@@ -167,7 +181,7 @@ public class TestSuite {
                 servers.remove(row);
                 saveServersToCSV(servers);
                 frame.dispose();
-                showServerTable(loadServersFromCSV(), true, false);
+                showServerTable(loadServersFromCSV(), false, false, false);
             }
         }, servers.size());
 
@@ -372,7 +386,12 @@ public class TestSuite {
 
 
 
-    private static void runSeleniumTest(Server s, boolean runAddLead, boolean runInjectSettings) {
+    private static void runSeleniumTest(
+    	    Server s, 
+    	    boolean runAddLead, 
+    	    boolean runInjectSettings,
+    	    boolean runUploadImage  // New parameter
+    	) {
         WebDriverManager.chromedriver().setup();
         WebDriver driver = new ChromeDriver();
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
@@ -403,6 +422,31 @@ public class TestSuite {
             	DrawingSettingsInjector.injectSettingsFromCSV(driver, wait, "drawing_settings.csv");
                 updateProgress("Settings injected.", 100);
                 System.out.println("✅ Injected drawing settings for " + s.name);
+            } else if (runUploadImage) {
+                System.out.println("runUploadImage");
+                
+                // Create final array to store the image path
+                final String[] imagePath = new String[1];
+                
+                // Show dialog on the EDT
+                SwingUtilities.invokeAndWait(() -> {
+                    imagePath[0] = JOptionPane.showInputDialog(
+                        progressDialog, 
+                        "Enter Image Path:", 
+                        "Image Path Input", 
+                        JOptionPane.QUESTION_MESSAGE
+                    );
+                });
+                
+                if (imagePath[0] != null) {
+                    updateProgress("Uploading part images...", 70);
+                    uploadPartImage(driver, imagePath[0]);  // Now only passing driver and imagePath
+                    updateProgress("Image upload completed", 100);
+                    System.out.println("✅ Uploaded images to all parts on " + s.name);
+                } else {
+                    updateProgress("Upload canceled by user", 100);
+                    System.out.println("❌ Upload canceled by user");
+                }
             } else {
                 DrawingSettingsCSV.saveSettings(driver, wait);
                 updateProgress("Settings saved.", 100);
@@ -414,6 +458,126 @@ public class TestSuite {
         } finally {
             closeProgressDialog();
             // driver.quit();
+        }
+    }
+    private static void uploadPartImage(WebDriver driver, String imagePath) {
+        try {
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
+            
+            // Navigate to Part List page
+            updateProgress("Navigating to Part List...", 70);
+            WebElement partListLink = wait.until(ExpectedConditions.elementToBeClickable(
+                By.xpath("//a[contains(@class, 'subModuleTileLeftLink') and .//span[contains(text(), 'Part List')]]")
+            ));
+            partListLink.click();
+            System.out.println("Clicked Part List tile");
+            
+            // Wait for Part List page to load
+            wait.until(ExpectedConditions.urlContains("/PricingAndConfig/PartList"));
+            updateProgress("Arrived at Part List page", 75);
+            
+            // Navigate to Glass tab
+            updateProgress("Navigating to Glass tab...", 80);
+            try {
+                WebElement glassTab = wait.until(ExpectedConditions.elementToBeClickable(
+                    By.xpath("//a[contains(@class, 'tab_inactive') and contains(text(), 'Glass')]")
+                ));
+                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", glassTab);
+                wait.until(ExpectedConditions.urlContains("/PricingAndConfig/PartList/GL"));
+                updateProgress("Arrived at Glass part management", 85);
+            } catch (TimeoutException e) {
+                System.out.println("⚠️ Couldn't find Glass tab. Trying alternative approach...");
+                List<WebElement> tabs = driver.findElements(By.xpath("//div[contains(@style, 'margin: 15px 0 0px 15px;')]/a"));
+                for (WebElement tab : tabs) {
+                    if (tab.getText().trim().equalsIgnoreCase("Glass")) {
+                        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", tab);
+                        wait.until(ExpectedConditions.urlContains("/PricingAndConfig/PartList/GL"));
+                        break;
+                    }
+                }
+            }
+            
+            // Get all part rows
+            updateProgress("Finding all parts...", 90);
+            List<WebElement> partRows = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(
+                By.cssSelector("tr.main_part_row")
+            ));
+            
+            System.out.println("Found " + partRows.size() + " parts to process");
+            
+            // Process each part
+            for (int i = 0; i < partRows.size(); i++) {
+                WebElement partRow = partRows.get(i);
+                
+                // Get part number from either the part_no attribute or the bold text in the cell
+                String partNo = partRow.getAttribute("part_no");
+                if (partNo == null || partNo.isEmpty()) {
+                    try {
+                        partNo = partRow.findElement(By.cssSelector("td[part_no]")).getAttribute("part_no");
+                    } catch (Exception e) {
+                        partNo = partRow.findElement(By.cssSelector("td b")).getText();
+                    }
+                }
+                
+                int progress = 90 + (int)((i * 10.0) / partRows.size());
+                updateProgress("Uploading image for part " + partNo + " (" + (i+1) + "/" + partRows.size() + ")...", progress);
+                
+                try {
+                    // Find the camera icon in this row
+                    WebElement cameraIcon = partRow.findElement(
+                        By.cssSelector("td.part_photo_dropdown_toggle img[src*='camera.svg']")
+                    );
+
+                    // Scroll into view and click using JavaScript
+                    ((JavascriptExecutor) driver).executeScript(
+                        "arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", 
+                        cameraIcon
+                    );
+                    Thread.sleep(500);
+                    ((JavascriptExecutor) driver).executeScript("arguments[0].click();", cameraIcon);
+                    
+                    // Wait for the upload form and file input
+                    WebElement uploadForm = wait.until(ExpectedConditions.presenceOfElementLocated(
+                        By.cssSelector("form#part_photo_form")
+                    ));
+                    WebElement fileInput = wait.until(ExpectedConditions.presenceOfElementLocated(
+                        By.cssSelector("form#part_photo_form input#file")
+                    ));
+
+                    // Upload the image
+                    File imageFile = new File(imagePath);
+                    if (!imageFile.exists()) {
+                        System.out.println("❌ Image file not found: " + imagePath);
+                        continue;
+                    }
+                    
+                    ((JavascriptExecutor)driver).executeScript(
+                        "arguments[0].style.display='block'; arguments[0].style.visibility='visible';", 
+                        fileInput
+                    );
+                    fileInput.sendKeys(imageFile.getAbsolutePath());
+                    
+                    // Wait for upload to complete (adjust timeout as needed)
+                    Thread.sleep(1000);
+                    
+                    System.out.println("✅ Uploaded image for part: " + partNo);
+                } catch (Exception e) {
+                    System.out.println("❌ Failed to upload image for part " + partNo + ": " + e.getMessage());
+                }
+                
+                // Refresh part rows after each upload to avoid stale elements
+                if (i < partRows.size() - 1) {
+                    partRows = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(
+                        By.cssSelector("tr.main_part_row")
+                    ));
+                }
+            }
+            
+            updateProgress("Image upload completed for all parts", 100);
+            System.out.println("✅ Uploaded image to all " + partRows.size() + " parts");
+        } catch (Exception e) {
+            System.out.println("❌ Part image upload process failed: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
