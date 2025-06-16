@@ -427,29 +427,21 @@ public class TestSuite {
                 updateProgress("Settings injected.", 100);
                 System.out.println("✅ Injected drawing settings for " + s.name);
             } else if (runUploadImage) {
-                System.out.println("runUploadImage");
-                
-                // Create final array to store the folder path
                 final String[] folderPath = new String[1];
-                
-                // Show dialog on the EDT
                 SwingUtilities.invokeAndWait(() -> {
                     folderPath[0] = JOptionPane.showInputDialog(
                         progressDialog, 
-                        "Enter Folder Path containing images:", 
-                        "Images Folder Input", 
-                        JOptionPane.QUESTION_MESSAGE
-                    );
+                        "Enter Images Folder Path:", 
+                        "Image Folder Input", 
+                        JOptionPane.QUESTION_MESSAGE);
                 });
                 
                 if (folderPath[0] != null) {
-                    updateProgress("Uploading part images...", 70);
-                    uploadPartImage(driver, folderPath[0]);
-                    updateProgress("Image upload completed", 100);
-                    System.out.println("✅ Uploaded images to matching parts on " + s.name);
+                    updateProgress("Starting image upload...", 70);
+                    new UploadPartImage(driver).uploadImagesFromFolder(folderPath[0]);
+                    updateProgress("Upload completed", 100);
                 } else {
-                    updateProgress("Upload canceled by user", 100);
-                    System.out.println("❌ Upload canceled by user");
+                    updateProgress("Upload canceled", 100);
                 }
             } else {
                 DrawingSettingsCSV.saveSettings(driver, wait);
@@ -462,162 +454,6 @@ public class TestSuite {
         } finally {
             closeProgressDialog();
             // driver.quit();
-        }
-    }
-    private static void uploadPartImage(WebDriver driver, String imagesFolderPath) {
-        try {
-            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
-            
-            // Ensure folder path ends with separator
-            if (!imagesFolderPath.endsWith(File.separator)) {
-                imagesFolderPath += File.separator;
-            }
-            
-            File imagesFolder = new File(imagesFolderPath);
-            if (!imagesFolder.exists()) {
-                throw new RuntimeException("Image folder not found: " + imagesFolderPath);
-            }
-            
-            // Get list of image files
-            File[] imageFiles = imagesFolder.listFiles((dir, name) -> 
-                name.toLowerCase().endsWith(".jpg") || 
-                name.toLowerCase().endsWith(".jpeg") || 
-                name.toLowerCase().endsWith(".png"));
-            
-            if (imageFiles == null || imageFiles.length == 0) {
-                throw new RuntimeException("No image files found in folder: " + imagesFolderPath);
-            }
-            
-            // Prepare image names list
-            List<String> imageNames = new ArrayList<>();
-            for (File f : imageFiles) {
-                String name = f.getName();
-                name = name.substring(0, name.lastIndexOf('.'));
-                imageNames.add(name.toLowerCase());
-            }
-
-            // Words to exclude from matching (but keep the images)
-            Set<String> excludedWords = new HashSet<>(Set.of(
-                "glass", "no", "to", "supply", "customer", "mm"
-            ));
-            
-            System.out.println("\n=== Starting upload with " + imageFiles.length + " images ===");
-            
-            // Navigate to Part List page
-            updateProgress("Navigating to Part List...", 70);
-            WebElement partListLink = wait.until(ExpectedConditions.elementToBeClickable(
-                By.xpath("//a[contains(@class, 'subModuleTileLeftLink') and .//span[contains(text(), 'Part List')]]")
-            ));
-            partListLink.click();
-            
-            // Wait for Part List page to load
-            wait.until(ExpectedConditions.urlContains("/PricingAndConfig/PartList"));
-            updateProgress("Arrived at Part List page", 75);
-            
-            // Navigate to Glass tab
-            updateProgress("Navigating to Glass tab...", 80);
-            try {
-                WebElement glassTab = wait.until(ExpectedConditions.elementToBeClickable(
-                    By.xpath("//a[contains(@class, 'tab_inactive') and contains(text(), 'Glass')]")
-                ));
-                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", glassTab);
-                wait.until(ExpectedConditions.urlContains("/PricingAndConfig/PartList/GL"));
-            } catch (TimeoutException e) {
-                List<WebElement> tabs = driver.findElements(By.xpath("//div[contains(@style, 'margin: 15px 0 0px 15px;')]/a"));
-                for (WebElement tab : tabs) {
-                    if (tab.getText().trim().equalsIgnoreCase("Glass")) {
-                        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", tab);
-                        wait.until(ExpectedConditions.urlContains("/PricingAndConfig/PartList/GL"));
-                        break;
-                    }
-                }
-            }
-            updateProgress("Arrived at Glass part management", 85);
-            
-            // Get all part rows
-            List<WebElement> partRows = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(
-                By.cssSelector("tr.main_part_row")
-            ));
-            
-            int partsToProcess = Math.min(41, partRows.size());
-            int uploadedCount = 0;
-            
-            for (int i = 0; i < partsToProcess; i++) {
-                WebElement partRow = partRows.get(i);
-                
-                // Get part name from third cell (index 2)
-                String partName = partRow.findElements(By.tagName("td")).get(2).getText().trim();
-                String simplifiedPartName = partName.toLowerCase()
-                    .replaceAll("\\d+\\.?\\d*mm", "")
-                    .replaceAll("[^a-z0-9]", " ")
-                    .replaceAll("\\s+", " ")
-                    .trim();
-                
-                // Find matching image
-                File matchingImage = null;
-                String matchedImageName = "";
-                
-                for (int j = 0; j < imageNames.size(); j++) {
-                    String imageName = imageNames.get(j);
-                    String cleanImageName = imageName.replaceAll("[_\\-]", " ");
-                    
-                    // Check if all non-excluded words from image exist in part name
-                    boolean allWordsMatch = true;
-                    for (String word : cleanImageName.split(" ")) {
-                        if (!excludedWords.contains(word) && !simplifiedPartName.contains(word)) {
-                            allWordsMatch = false;
-                            break;
-                        }
-                    }
-                    
-                    if (allWordsMatch) {
-                        matchingImage = imageFiles[j];
-                        matchedImageName = imageName;
-                        break;
-                    }
-                }
-                
-                if (matchingImage != null) {
-                    System.out.println("MATCH: [" + partName + "] ← [" + matchedImageName + "]");
-                    
-                    try {
-                        // Find and click camera icon
-                        WebElement cameraIcon = partRow.findElement(
-                            By.cssSelector("td.part_photo_dropdown_toggle img[src*='camera.svg']")
-                        );
-                        ((JavascriptExecutor) driver).executeScript(
-                            "arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", 
-                            cameraIcon
-                        );
-                        Thread.sleep(300);
-                        ((JavascriptExecutor) driver).executeScript("arguments[0].click();", cameraIcon);
-                        
-                        // Upload image
-                        WebElement fileInput = wait.until(ExpectedConditions.presenceOfElementLocated(
-                            By.cssSelector("form#part_photo_form input#file")
-                        ));
-                        fileInput.sendKeys(matchingImage.getAbsolutePath());
-                        Thread.sleep(500);
-                        
-                        uploadedCount++;
-                    } catch (Exception e) {
-                        System.out.println("⚠️ Upload failed for: " + partName);
-                    }
-                }
-                
-                // Refresh part rows to avoid stale elements
-                if (i < partsToProcess - 1) {
-                    partRows = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(
-                        By.cssSelector("tr.main_part_row")
-                    ));
-                }
-            }
-            
-            System.out.println("\n=== Completed: " + uploadedCount + "/" + partsToProcess + " parts matched ===");
-            updateProgress("Upload completed", 100);
-        } catch (Exception e) {
-            System.out.println("\n❌ Error: " + e.getMessage());
-            updateProgress("Upload failed", 100);
         }
     }
 
