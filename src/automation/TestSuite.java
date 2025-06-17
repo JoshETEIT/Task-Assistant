@@ -391,11 +391,11 @@ public class TestSuite {
 
 
     private static void runSeleniumTest(
-    	    Server s, 
-    	    boolean runAddLead, 
-    	    boolean runInjectSettings,
-    	    boolean runUploadImage  // New parameter
-    	) {
+            Server s, 
+            boolean runAddLead, 
+            boolean runInjectSettings,
+            boolean runUploadImage
+        ) {
         WebDriverManager.chromedriver().setup();
         WebDriver driver = new ChromeDriver();
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
@@ -422,28 +422,66 @@ public class TestSuite {
                     System.out.println((success ? "✅" : "❌") + " Test result for " + s.name);
                     driver.get(s.url + "/Home");
                 }
-            } else if (runInjectSettings) {
-            	DrawingSettingsInjector.injectSettingsFromCSV(driver, wait, "drawing_settings.csv");
+            } 
+            else if (runInjectSettings) {
+                DrawingSettingsInjector.injectSettingsFromCSV(driver, wait, "drawing_settings.csv");
                 updateProgress("Settings injected.", 100);
                 System.out.println("✅ Injected drawing settings for " + s.name);
-            } else if (runUploadImage) {
-                final String[] folderPath = new String[1];
-                SwingUtilities.invokeAndWait(() -> {
-                    folderPath[0] = JOptionPane.showInputDialog(
-                        progressDialog, 
-                        "Enter Images Folder Path:", 
-                        "Image Folder Input", 
-                        JOptionPane.QUESTION_MESSAGE);
-                });
+            } 
+            else if (runUploadImage) {
+                // 1. First hide any existing progress dialog
+                closeProgressDialog();
                 
-                if (folderPath[0] != null) {
-                    updateProgress("Starting image upload...", 70);
-                    new UploadPartImage(driver).uploadImagesFromFolder(folderPath[0]);
-                    updateProgress("Upload completed", 100);
-                } else {
-                    updateProgress("Upload canceled", 100);
+                // 2. Get user inputs
+                String folderPath = JOptionPane.showInputDialog(
+                    null,  // No parent - will appear as standalone
+                    "Enter Images Folder Path:", 
+                    "Image Folder Input", 
+                    JOptionPane.QUESTION_MESSAGE);
+                
+                if (folderPath == null || folderPath.trim().isEmpty()) {
+                    return;
                 }
-            } else {
+
+                String[] partTypes = {"Glass", "Ironmongery"};
+                int partTypeChoice = JOptionPane.showOptionDialog(
+                    null,
+                    "Upload images for which part type?",
+                    "Select Part Type",
+                    JOptionPane.DEFAULT_OPTION,
+                    JOptionPane.QUESTION_MESSAGE,
+                    null,
+                    partTypes,
+                    partTypes[0]);
+                
+                if (partTypeChoice == JOptionPane.CLOSED_OPTION) {
+                    return;
+                }
+
+                // 3. Now show progress and execute upload
+                showProgressDialog(s.name);
+                updateProgress("Starting upload...", 10);
+                
+                try {
+                    if (partTypeChoice == 0) {
+                        new GlassPartImageUploader(driver).uploadImagesFromFolder(folderPath);
+                    } else {
+                        new IronmongeryPartImageUploader(driver).uploadImagesFromFolder(folderPath);
+                    }
+                    updateProgress("Upload completed", 100);
+                } catch (Exception e) {
+                    updateProgress("Upload failed: " + e.getMessage(), 100);
+                    throw e; // Re-throw to handle in outer catch
+                } finally {
+                    new Thread(() -> {
+                        try {
+                            Thread.sleep(2000); // Let user see completion status
+                        } catch (InterruptedException ignored) {}
+                        closeProgressDialog();
+                    }).start();
+                }
+            }
+            else {
                 DrawingSettingsCSV.saveSettings(driver, wait);
                 updateProgress("Settings saved.", 100);
                 System.out.println("✅ Saved drawing settings for " + s.name);
@@ -456,5 +494,4 @@ public class TestSuite {
             // driver.quit();
         }
     }
-
 }
