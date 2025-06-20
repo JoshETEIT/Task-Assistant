@@ -6,6 +6,7 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class IronmongeryPartImageUploader extends BasePartImageUploader {
     private static final Set<String> IRONMONGERY_EXCLUDED_WORDS = Set.of(
@@ -47,12 +48,16 @@ public class IronmongeryPartImageUploader extends BasePartImageUploader {
 
     @Override
     protected boolean isMatch(String imageName, String partName) {
-        // Stricter matching - require at least 3 matching words
-        long matchCount = Arrays.stream(imageName.split(" "))
-            .filter(word -> !excludedWords.contains(word))
-            .filter(partName::contains)
-            .count();
-            
-        return matchCount >= 3;
+        // Get all relevant words from both names (excluding unwanted words)
+        List<String> imageWords = Arrays.stream(imageName.split(" "))
+                .filter(word -> !excludedWords.contains(word))
+                .collect(Collectors.toList());
+        
+        List<String> partWords = Arrays.stream(partName.split(" "))
+                .filter(word -> !excludedWords.contains(word))
+                .collect(Collectors.toList());
+        
+        // Check if both contain exactly the same set of words (order doesn't matter)
+        return imageWords.containsAll(partWords) && partWords.containsAll(imageWords);
     }
 }
