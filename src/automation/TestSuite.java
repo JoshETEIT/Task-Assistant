@@ -5,6 +5,7 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import automation.helpers.ProgressBarHelper;
+import automation.ui.ProgressUI;
 import io.github.bonigarcia.wdm.WebDriverManager;
 
 import javax.swing.*;
@@ -22,6 +23,7 @@ public class TestSuite {
     private static JProgressBar progressBar;
     private static JLabel progressLabel;
     private static JProgressBar stepProgressBar;
+    private static final ProgressUI progressUI = new ProgressUI();
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
@@ -279,7 +281,7 @@ public class TestSuite {
         });
     }
 
-    private static void runSeleniumTest(
+    public static void runSeleniumTest(
             ServerManager.Server s, 
             boolean runAddLead, 
             boolean runInjectSettings,
@@ -288,33 +290,35 @@ public class TestSuite {
         WebDriverManager.chromedriver().setup();
         WebDriver driver = new ChromeDriver();
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        
+        progressUI.showProgress("Running Test", "Initializing...");
 
         showProgressDialog(s.getName());
         ProgressBarHelper.initializeProgress(progressBar, stepProgressBar);
-        updateProgress("Opening browser...", 10);
+        progressUI.updateProgress(10, 0, "Launching browser");
 
         try {
             driver.get(s.getUrl());
             driver.manage().window().maximize();
-            updateProgress("Navigating to login page...", 20);
+            // updateProgress("Navigating to login page...", 20);
 
             wait.until(ExpectedConditions.elementToBeClickable(By.id("login_user_name"))).sendKeys(s.getUsername());
             wait.until(ExpectedConditions.elementToBeClickable(By.id("login_password"))).sendKeys(s.getPassword());
             wait.until(ExpectedConditions.elementToBeClickable(By.id("submit_button"))).click();
-            updateProgress("Logged in. Running test...", 70);
+            // updateProgress("Logged in. Running test...", 70);
 
             if (runAddLead) {
                 for (int i = 0; i < 5; i++) {
                     boolean success = AddNewLead.testFormSubmission(driver);
                     int progress = 75 + i * 5;
-                    updateProgress("Form submission " + (success ? "succeeded" : "failed"), progress);
+                    // updateProgress("Form submission " + (success ? "succeeded" : "failed"), progress);
                     System.out.println((success ? "✅" : "❌") + " Test result for " + s.getName());
                     driver.get(s.getUrl() + "/Home");
                 }
             } 
             else if (runInjectSettings) {
                 DrawingSettingsInjector.injectSettingsFromCSV(driver, wait, "drawing_settings.csv");
-                updateProgress("Settings injected.", 100);
+                // updateProgress("Settings injected.", 100);
                 System.out.println("✅ Injected drawing settings for " + s.getName());
             } 
             else if (runUploadImage) {
@@ -346,7 +350,7 @@ public class TestSuite {
                 }
 
                 showProgressDialog(s.getName());
-                updateProgress("Starting upload...", 10);
+                // updateProgress("Starting upload...", 10);
                 
                 try {
                     if (partTypeChoice == 0) {
@@ -354,9 +358,9 @@ public class TestSuite {
                     } else {
                         new IronmongeryPartImageUploader(driver).uploadImagesFromFolder(folderPath);
                     }
-                    updateProgress("Upload completed", 100);
+                    // updateProgress("Upload completed", 100);
                 } catch (Exception e) {
-                    updateProgress("Upload failed: " + e.getMessage(), 100);
+                    // updateProgress("Upload failed: " + e.getMessage(), 100);
                     throw e;
                 } finally {
                     new Thread(() -> {
@@ -369,7 +373,8 @@ public class TestSuite {
             }
             else {
                 DrawingSettingsCSV.saveSettings(driver, wait);
-                updateProgress("Settings saved.", 100);
+                // updateProgress("Settings saved.", 100);
+                progressUI.updateProgress(100, 100, "Complete");
                 System.out.println("✅ Saved drawing settings for " + s.getName());
             }
 

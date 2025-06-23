@@ -22,12 +22,12 @@ public class AddNewLead {
             updateProgress("Starting form submission", 10);
 
             wait.until(ExpectedConditions.urlContains("/Home"));
-            updateStepProgress("Navigating to Add New Lead", 20);
+            //updateStepProgress("Navigating to Add New Lead", 20);
 
             // Click the 'Add New Lead' button
             driver.findElement(By.xpath("//a[.//span[normalize-space(text())='Add New Lead']]"))
                   .click();
-            updateStepProgress("Clicked Add New Lead", 30);
+            //updateStepProgress("Clicked Add New Lead", 30);
 
             // Fill out the form fields
             enterTextById(wait, "label", "Test lead");
@@ -39,7 +39,7 @@ public class AddNewLead {
 
             enterTextById(wait, "notes", "This lead was created automatically");
             driver.findElement(By.tagName("body")).click();
-            updateStepProgress("Form fields filled", 50);
+            //updateStepProgress("Form fields filled", 50);
 
             // Submit new contact details
             clickButtonWithRetry(driver, "coloured_button_new_contact", 3, 2);
@@ -65,7 +65,7 @@ public class AddNewLead {
             enterTextByClass(wait, "dynamic_contact_input", "000-000-0000");
             clickButtonById(driver, "coloured_button_create_box");
 
-            updateStepProgress("New contact details submitted", 70);
+            //updateStepProgress("New contact details submitted", 70);
 
             // Add address information
             clickButtonWithRetry(driver, "coloured_button_new_address", 3, 2);
