@@ -9,7 +9,6 @@ import org.openqa.selenium.support.ui.Select;
 
 import java.time.Duration;
 
-import static automation.helpers.ProgressBarHelper.*;
 import static automation.helpers.ElementHelper.*;
 
 public class AddNewLead {
@@ -19,7 +18,6 @@ public class AddNewLead {
 
         try {
             // Update overall progress bar (Starting Test)
-            updateProgress("Starting form submission", 10);
 
             wait.until(ExpectedConditions.urlContains("/Home"));
             //updateStepProgress("Navigating to Add New Lead", 20);
@@ -69,7 +67,6 @@ public class AddNewLead {
 
             // Add address information
             clickButtonWithRetry(driver, "coloured_button_new_address", 3, 2);
-            updateProgress("Form submission completed", 80);
 
             enterTextById(wait, "address_line_1", "123 Fake Street");
             enterTextById(wait, "address_line_2", "Suite 100");
@@ -81,7 +78,6 @@ public class AddNewLead {
             // Optional postcode lookup
             // clickButtonById(wait, "postcode_lookup_submit");
 
-            updateProgress("Form submission completed", 95);
             clickButtonById(driver, "coloured_button_create_box");
 
             System.out.println("Form submission completed.");
