@@ -83,7 +83,7 @@ public class ServerUI extends AutomationUI {
     }
     
     private void showEditDialog(ServerManager.Server server) {
-        JDialog dialog = createBaseDialog("Edit Server", 400, 300);
+        JDialog dialog = createStyledDialog("Edit Server", 400, 300);
         // ... dialog setup ...
         dialog.setVisible(true);
     }
