@@ -1,7 +1,7 @@
 package automation.ui;
 
-import java.awt.Component;
 import javax.swing.*;
+import java.awt.*;
 
 public class ProgressUI {
     private JDialog progressDialog;
@@ -10,34 +10,20 @@ public class ProgressUI {
     private JLabel statusLabel;
 
     public void showProgress(String title, String initialMessage) {
-        progressDialog = AutomationUI.createStyledDialog(title, 400, 180);
-        JPanel content = AutomationUI.createContentPanel();
+        // This will now automatically get all styling from AutomationUI
+        progressDialog = AutomationUI.createStyledDialog(title, 400, 200);
+        JPanel content = (JPanel)((JPanel)progressDialog.getContentPane()).getComponent(1);
         
-        JLabel titleLabel = AutomationUI.createLabel(title);
-        titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        content.add(titleLabel);
-        
-        content.add(Box.createVerticalStrut(20));
-        
-        mainProgressBar = new JProgressBar(0, 100);
-        mainProgressBar.setStringPainted(true);
-        mainProgressBar.setOpaque(true);
-        content.add(mainProgressBar);
-        
-        content.add(Box.createVerticalStrut(10));
-        
-        stepProgressBar = new JProgressBar(0, 100);
-        stepProgressBar.setStringPainted(true);
-        stepProgressBar.setOpaque(true);
-        content.add(stepProgressBar);
-        
-        content.add(Box.createVerticalStrut(15));
-        
+        // Add components - they'll inherit the correct styling
         statusLabel = AutomationUI.createLabel(initialMessage);
-        statusLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         content.add(statusLabel);
         
-        progressDialog.setContentPane(content);
+        mainProgressBar = new JProgressBar();
+        content.add(mainProgressBar);
+        
+        stepProgressBar = new JProgressBar();
+        content.add(stepProgressBar);
+        
         progressDialog.setVisible(true);
     }
 

@@ -10,6 +10,8 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import javax.swing.*;
+
+import java.io.File;
 import java.time.Duration;
 
 public class TestSuite {
@@ -28,7 +30,7 @@ public class TestSuite {
             int choice = AutomationUI.showOptionDialog(
                 null,
                 "What action would you like to perform?",
-                "Automation Suite - Select Action",
+                "Automation Suite | Select Action",
                 options
             );
 
@@ -82,45 +84,59 @@ public class TestSuite {
             else if (runUploadImage) {
             	progressUI.close();
                 
-                String folderPath = JOptionPane.showInputDialog(
-                    null,
-                    "Enter Images Folder Path:", 
-                    "Image Folder Input", 
-                    JOptionPane.QUESTION_MESSAGE);
-                
-                if (folderPath == null || folderPath.trim().isEmpty()) {
-                    return;
-                }
+            	String folderPath = AutomationUI.showDirectoryChooser(
+            		    null, 
+            		    "Automation Suite | Select Images Directory"
+            		);
 
-                String[] partTypes = {"Glass", "Ironmongery"};
-                int partTypeChoice = JOptionPane.showOptionDialog(
-                    null,
-                    "Upload images for which part type?",
-                    "Select Part Type",
-                    JOptionPane.DEFAULT_OPTION,
-                    JOptionPane.QUESTION_MESSAGE,
-                    null,
-                    partTypes,
-                    partTypes[0]);
-                
-                if (partTypeChoice == JOptionPane.CLOSED_OPTION) {
-                    return;
-                }
+            		if (folderPath == null) {
+            		    progressUI.updateProgress(0, 0, "Operation cancelled");
+            		    progressUI.close();
+            		    return;
+            		}
 
-                progressUI.updateProgress(10, 0, "Starting upload...");
-                // updateProgress("Starting upload...", 10);
-                
-                try {
-                    if (partTypeChoice == 0) {
-                        new GlassPartImageUploader(driver).uploadImagesFromFolder(folderPath);
-                    } else {
-                        new IronmongeryPartImageUploader(driver).uploadImagesFromFolder(folderPath);
+            		// Verify directory is accessible
+            		File dir = new File(folderPath);
+            		if (!dir.exists() || !dir.isDirectory()) {
+            		    AutomationUI.showMessageDialog(
+            		        null,
+            		        "The selected directory is not accessible",
+            		        "Directory Error",
+            		        JOptionPane.ERROR_MESSAGE
+            		    );
+            		    return;
+            		}
+
+                    String[] partTypes = {"Glass", "Ironmongery"};
+                    int partTypeChoice = AutomationUI.showOptionDialog(
+                        null,
+                        "Upload images for which part type?",
+                        "Automation Suite | Select Part Type",
+                        partTypes
+                    );
+                    
+                    if (partTypeChoice == JOptionPane.CLOSED_OPTION) {
+                        progressUI.close();
+                        return;
                     }
-                    // updateProgress("Upload completed", 100);
-                } catch (Exception e) {
-                    // updateProgress("Upload failed: " + e.getMessage(), 100);
-                    throw e;
-                } finally {
+
+                    progressUI.showProgress("Automation Progress", "Starting upload...");
+                    progressUI.updateProgress(10, 0, "Preparing upload...");
+                    
+                    try {
+                        if (partTypeChoice == 0) {
+                            new GlassPartImageUploader(driver).uploadImagesFromFolder(folderPath);
+                        } else {
+                            new IronmongeryPartImageUploader(driver).uploadImagesFromFolder(folderPath);
+                        }
+                    } catch (Exception e) {
+                        AutomationUI.showMessageDialog(
+                            null, 
+                            "Upload failed: " + e.getMessage(), 
+                            "Error", 
+                            JOptionPane.ERROR_MESSAGE
+                        );
+                    } finally {
                     new Thread(() -> {
                         try {
                             Thread.sleep(2000);
