@@ -9,7 +9,7 @@ import java.util.Set;
 
 public class GlassPartImageUploader extends BasePartImageUploader {
     private static final Set<String> GLASS_EXCLUDED_WORDS = Set.of(
-        "glass", "no", "to", "supply", "customer", "mm"
+        "glass", "no", "to", "supply", "customer", "mm", "float", "toughened"
     );
 
     public GlassPartImageUploader(WebDriver driver) {
@@ -25,7 +25,7 @@ public class GlassPartImageUploader extends BasePartImageUploader {
         
         wait.until(ExpectedConditions.urlContains("/PricingAndConfig/PartList"));
         
-        // Click Glass tab
+        // Click Glass tab with better handling
         try {
             WebElement glassTab = wait.until(ExpectedConditions.elementToBeClickable(
                 By.xpath("//a[contains(text(),'Glass')]")));
@@ -42,13 +42,21 @@ public class GlassPartImageUploader extends BasePartImageUploader {
     @Override
     protected List<WebElement> getPartRows() {
         return wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(
-            By.cssSelector("tr.main_part_row")));
+            By.cssSelector("tr.main_part_row:not(.part_photo_row)")));
     }
 
     @Override
     protected boolean isMatch(String imageName, String partName) {
-        return Arrays.stream(imageName.split(" "))
+        // For glass parts, we can be more lenient with matching
+        String[] imageWords = Arrays.stream(imageName.split(" "))
             .filter(word -> !excludedWords.contains(word))
-            .allMatch(partName::contains);
+            .toArray(String[]::new);
+        
+        // At least 50% of the words should match
+        long matchingWords = Arrays.stream(imageWords)
+            .filter(partName::contains)
+            .count();
+            
+        return matchingWords >= (imageWords.length / 2.0);
     }
 }

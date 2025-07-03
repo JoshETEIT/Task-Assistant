@@ -19,21 +19,16 @@ public abstract class BasePartImageUploader {
 
     public void uploadImagesFromFolder(String imagesFolderPath) {
         try {
-            // Normalize folder path
-            imagesFolderPath = imagesFolderPath.endsWith(File.separator) 
-                ? imagesFolderPath 
-                : imagesFolderPath + File.separator;
-
             File imagesFolder = new File(imagesFolderPath);
-            if (!imagesFolder.exists()) {
-                throw new RuntimeException("Image folder not found: " + imagesFolderPath);
+            if (!imagesFolder.exists() || !imagesFolder.isDirectory()) {
+                throw new RuntimeException("Image folder not found or not accessible: " + imagesFolderPath);
             }
 
             File[] imageFiles = imagesFolder.listFiles((dir, name) -> 
                 name.toLowerCase().matches(".*\\.(jpg|jpeg|png)$"));
             
             if (imageFiles == null || imageFiles.length == 0) {
-                throw new RuntimeException("No image files found");
+                throw new RuntimeException("No image files found in: " + imagesFolderPath);
             }
 
             System.out.println("\n=== Starting upload with " + imageFiles.length + " images ===");
@@ -42,15 +37,28 @@ public abstract class BasePartImageUploader {
             List<WebElement> partRows = getPartRows();
             
             int processedCount = 0;
-            for (WebElement partRow : partRows.subList(0, Math.min(41, partRows.size()))) {
-                if (processPartRow(partRow, imageFiles)) {
-                    processedCount++;
+            int skippedCount = 0;
+            int failedCount = 0;
+            
+            for (WebElement partRow : partRows) {
+                try {
+                    if (processPartRow(partRow, imageFiles)) {
+                        processedCount++;
+                    } else {
+                        skippedCount++;
+                    }
+                } catch (Exception e) {
+                    System.out.println("❌ Failed to process part row: " + e.getMessage());
+                    failedCount++;
                 }
             }
             
             System.out.println("\n=== Completed: " + processedCount + " parts processed ===");
+            System.out.println("=== Skipped: " + skippedCount + " parts (no match or already has image) ===");
+            System.out.println("=== Failed: " + failedCount + " parts ===");
         } catch (Exception e) {
             System.out.println("\n❌ Error: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -63,11 +71,33 @@ public abstract class BasePartImageUploader {
             String partName = partRow.findElements(By.tagName("td")).get(2).getText().trim();
             String cleanPartName = cleanName(partName);
             
+            // Check if part already has an image
+            if (hasExistingImage(partRow)) {
+                System.out.println("ℹ️ Part '" + partName + "' already has an image - skipping");
+                return false;
+            }
+            
             Optional<File> matchingImage = findMatchingImage(cleanPartName, imageFiles);
-            if (matchingImage.isEmpty()) return false;
+            if (matchingImage.isEmpty()) {
+                System.out.println("ℹ️ No matching image found for part: " + partName);
+                return false;
+            }
             
             uploadImage(partRow, matchingImage.get());
             return true;
+        } catch (Exception e) {
+            System.out.println("❌ Error processing part row: " + e.getMessage());
+            return false;
+        }
+    }
+
+    protected boolean hasExistingImage(WebElement partRow) {
+        try {
+            WebElement imgElement = partRow.findElement(By.cssSelector("td.part_photo_dropdown_toggle img"));
+            String src = imgElement.getAttribute("src");
+            // Check if src contains a thumbnail URL pattern or isn't the default camera icon
+            return !src.contains("camera.svg") && 
+                   (src.contains("Thumbnail") || src.matches(".*\\.(jpg|jpeg|png)$"));
         } catch (Exception e) {
             return false;
         }
@@ -75,13 +105,15 @@ public abstract class BasePartImageUploader {
 
     protected String cleanName(String name) {
         return name.toLowerCase()
-            .replaceAll("\\d+\\.?\\d*mm", "")
-            .replaceAll("[^a-z0-9]", " ")
-            .replaceAll("\\s+", " ")
+            .replaceAll("\\d+\\.?\\d*mm", "") // Remove measurements
+            .replaceAll("[^a-z0-9]", " ")     // Replace special chars with space
+            .replaceAll("\\s+", " ")          // Collapse multiple spaces
             .trim();
     }
 
     protected Optional<File> findMatchingImage(String cleanPartName, File[] imageFiles) {
+        List<File> potentialMatches = new ArrayList<>();
+        
         for (File imageFile : imageFiles) {
             String imageName = imageFile.getName()
                 .substring(0, imageFile.getName().lastIndexOf('.'))
@@ -89,25 +121,62 @@ public abstract class BasePartImageUploader {
                 .replaceAll("[_\\-]", " ");
             
             if (isMatch(imageName, cleanPartName)) {
-                return Optional.of(imageFile);
+                potentialMatches.add(imageFile);
             }
         }
+        
+        // If multiple matches, pick the one with the closest name length
+        if (!potentialMatches.isEmpty()) {
+            potentialMatches.sort((f1, f2) -> 
+                Integer.compare(
+                    Math.abs(f1.getName().length() - cleanPartName.length()),
+                    Math.abs(f2.getName().length() - cleanPartName.length())
+                ));
+            return Optional.of(potentialMatches.get(0));
+        }
+        
         return Optional.empty();
     }
 
     protected void uploadImage(WebElement partRow, File imageFile) throws Exception {
+        try {
+            // First attempt without extra scrolling
+            attemptUpload(partRow, imageFile, false);
+        } catch (StaleElementReferenceException | ElementNotInteractableException e) {
+            System.out.println("⚠️ First attempt failed, retrying with scroll...");
+            // Second attempt with forced scroll
+            attemptUpload(partRow, imageFile, true);
+        }
+    }
+
+    private void attemptUpload(WebElement partRow, File imageFile, boolean forceScroll) throws Exception {
         WebElement cameraIcon = partRow.findElement(
             By.cssSelector("td.part_photo_dropdown_toggle img[src*='camera.svg']"));
         
-        ((JavascriptExecutor) driver).executeScript(
-            "arguments[0].scrollIntoView({behavior:'smooth',block:'center'});", 
-            cameraIcon);
-        Thread.sleep(300);
+        if (forceScroll) {
+            ((JavascriptExecutor) driver).executeScript(
+                "arguments[0].scrollIntoView({behavior:'smooth',block:'center'});", 
+                cameraIcon);
+            Thread.sleep(300);
+        }
+        
         ((JavascriptExecutor) driver).executeScript("arguments[0].click();", cameraIcon);
+        Thread.sleep(500);
         
         WebElement fileInput = wait.until(ExpectedConditions.presenceOfElementLocated(
             By.cssSelector("form#part_photo_form input#file")));
+        
+        if (forceScroll) {
+            ((JavascriptExecutor) driver).executeScript(
+                "arguments[0].scrollIntoView({behavior:'smooth',block:'center'});", 
+                fileInput);
+        }
+        
+        ((JavascriptExecutor) driver).executeScript("arguments[0].value = '';", fileInput);
         fileInput.sendKeys(imageFile.getAbsolutePath());
-        Thread.sleep(500);
+        Thread.sleep(1000);
+        
+        System.out.println("✅ Uploaded image for part: " + 
+            partRow.findElements(By.tagName("td")).get(2).getText().trim());
     }
 }

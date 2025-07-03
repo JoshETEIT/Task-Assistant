@@ -10,7 +10,8 @@ import java.util.stream.Collectors;
 
 public class IronmongeryPartImageUploader extends BasePartImageUploader {
     private static final Set<String> IRONMONGERY_EXCLUDED_WORDS = Set.of(
-        "ironmongery", "hardware", "no", "to", "supply", "customer", "mm"
+        "ironmongery", "hardware", "no", "to", "supply", "customer", "mm", 
+        "polished", "brass", "chrome", "fastener", "non", "locking"
     );
 
     public IronmongeryPartImageUploader(WebDriver driver) {
@@ -26,7 +27,7 @@ public class IronmongeryPartImageUploader extends BasePartImageUploader {
         
         wait.until(ExpectedConditions.urlContains("/PricingAndConfig/PartList"));
         
-        // Click Ironmongery tab
+        // Click Ironmongery tab with better handling
         try {
             WebElement ironmongeryTab = wait.until(ExpectedConditions.elementToBeClickable(
                 By.xpath("//a[contains(text(),'Ironmongery')]")));
@@ -43,21 +44,23 @@ public class IronmongeryPartImageUploader extends BasePartImageUploader {
     @Override
     protected List<WebElement> getPartRows() {
         return wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(
-            By.cssSelector("tr.main_part_row")));
+            By.cssSelector("tr.main_part_row:not(.part_photo_row)")));
     }
 
     @Override
     protected boolean isMatch(String imageName, String partName) {
-        // Get all relevant words from both names (excluding unwanted words)
-        List<String> imageWords = Arrays.stream(imageName.split(" "))
-                .filter(word -> !excludedWords.contains(word))
-                .collect(Collectors.toList());
+        // Normalize both names by:
+        // 1. Converting to lowercase
+        // 2. Removing all spaces and special characters
+        // 3. Keeping ALL words (no exclusions)
         
-        List<String> partWords = Arrays.stream(partName.split(" "))
-                .filter(word -> !excludedWords.contains(word))
-                .collect(Collectors.toList());
+        String normalizedImageName = imageName.toLowerCase()
+            .replaceAll("[^a-z0-9]", "");
         
-        // Check if both contain exactly the same set of words (order doesn't matter)
-        return imageWords.containsAll(partWords) && partWords.containsAll(imageWords);
+        String normalizedPartName = partName.toLowerCase()
+            .replaceAll("[^a-z0-9]", "");
+        
+        // Exact match required
+        return normalizedImageName.equals(normalizedPartName);
     }
 }
