@@ -1,453 +1,118 @@
-//Created by @AlexLovick 24/10/2024
-/**
- * Make sure the right columns are added in list organisation settings, and ticked on the column selector in the part list
- * Should be:
- * Default ones
- * Cost
- * Multiplier
- * Price
- * Waste
- * IPL
- * Stocked
- * Van Stock
- * Special
- * Notes
- * Last Updated
- * Updated by
- */
+package automation;
 
-
-//Java imports
-import java.time.Duration;
-import java.awt.SystemColor;
-import java.io.*;  
-import java.util.Scanner;  
-import java.util.ArrayList;
-import java.util.List;
-
-//Selenium imports
-import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.Keys;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeDriver;
+import java.io.*;
+import java.util.*;
+import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
-import org.openqa.selenium.support.locators.RelativeLocator;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.Select;
-import org.openqa.selenium.support.ui.WebDriverWait;
-
+import org.openqa.selenium.support.ui.*;
+import java.time.Duration;
+import static automation.helpers.ElementHelper.*;
 
 public class GlassPartImport {
-	
-	public static final String demoURL = "";
-	public static final String NMJURL = "";
-	public static final String priceFileURL = "";
-	public static final String dboardURL = "";
-	public static final String quotesURL = "";
-	public static final String localURL = "";
-	public static final String STLURL = "";
-	public static final String twentyOneDegURL = "";
-	public static final String LDSURL = "";
-	public static final String glassURL = "";
-	public static final String e2eURL = "";
-	
-	public static final String userJosh = "";
-	public static final String userLocalTest = "";
-	public static final String userNMJ = "";
-	public static final String passwordLocalTest = "";
-	public static final String passwordLDN = "";
-	public static final String passwordSTL = "";
-	public static final String passwordTwentyOneDeg = "";
-	public static final String passwordE2E = "";
-	public static final String passwordDemo = "";
-	public static final String passwordNMJ = "";
-	public static final String passwordLDS = "";
-	
-	//Main Java class to run application
-    public static void main(String[] args) throws Exception {
-    	
-    	// Read CSV and get glassPartLists
-    	ArrayList<glassPartList> glassPartLists = CSVReader(GetCSV());
-    	
-    	System.out.println("Reading CSV...");
-    	
-    	System.out.println(glassPartLists);
-    	
-    	// Pass the glassPartLists list to login
-    	glassListPartAdder(glassPartLists,getSystem());  
-    }
     
-    public static String getSystem() {
+    public static class GlassPartItem {
+        String partNo, partName, pUnit, cost, obscure;
 
-      	Scanner input = new Scanner(System.in);
-      	
-      	String system;
-      	
-      	System.out.print("\nPlease pick a system:\n1) Local System\n2) Live System\n");
-      	system = (input.nextLine());
-      	
-      	//input.close();
-      	
-      	return system;
+        public String getPartNo() { return partNo; }
+        public void setPartNo(String partNo) { this.partNo = partNo; }
+        public String getPartName() { return partName; }
+        public void setPartName(String partName) { this.partName = partName; }
+        public String getpUnit() { return pUnit; }
+        public void setpUnit(String pUnit) { this.pUnit = pUnit; }
+        public String getCost() { return cost; }
+        public void setCost(String cost) { this.cost = cost; }
+        public String getObscure() { return obscure; }
+        public void setObscure(String obscure) { this.obscure = obscure; }
     }
-    
-    public static String GetCSV() {
-    	String CSV;
-    	CSV = "C:\\Eclipse and testing\\Input CSVs\\Glass_to_import_clean.csv";
-    	
-    	return CSV;
-    }
-    
-    
-    public static void hold() {
-    	
-    	System.out.println("Press the 'Enter' key to continue...");
-        
-        Scanner scanner = new Scanner(System.in);
-        
-        while (!scanner.nextLine().trim().equals("")) {
-            System.out.println("Waiting for the Enter key...");
+
+    public static ArrayList<GlassPartItem> CSVReader(String csvPath) throws Exception {
+        ArrayList<GlassPartItem> itemList = new ArrayList<>();
+        try (Scanner sc = new Scanner(new File(csvPath))) {
+            if (sc.hasNextLine()) sc.nextLine(); // Skip header
+            
+            while (sc.hasNextLine()) {
+                String[] fields = sc.nextLine().split(",");
+                GlassPartItem item = new GlassPartItem();
+                item.setPartNo(fields[0]);
+                item.setPartName(fields[1]);
+                item.setpUnit(fields[2]);
+                item.setCost(fields[3]);
+                item.setObscure(fields.length > 4 ? fields[4] : "No");
+                itemList.add(item);
+            }
         }
-
-        // Proceed with the next steps
-        System.out.println("Resuming script...");
-    	
+        return itemList;
     }
-    
-    //Data Class for holding the parts
-    public static class glassPartList{
 
+    public static void importGlassParts(ArrayList<GlassPartItem> items,
+            WebDriver driver,
+            String baseUrl) {
 
-    	//Timber Part Variables
-    	String PartNo,partName,pUnit,cost,obscure;
-
-		public String getPartNo() {
-			return PartNo;
-		}
-
-		public void setPartNo(String partNo) {
-			PartNo = partNo;
-		}
-
-		public String getPartName() {
-			return partName;
-		}
-
-		public void setPartName(String partName) {
-			this.partName = partName;
-		}
-
-		public String getpUnit() {
-			return pUnit;
-		}
-
-		public void setpUnit(String pUnit) {
-			this.pUnit = pUnit;
-		}
-
-		public String getCost() {
-			return cost;
-		}
-
-		public void setCost(String cost) {
-			this.cost = cost;
-		}
-
-		public String getObscure() {
-			return obscure;
-		}
-
-		public void setObscure(String obscure) {
-			this.obscure = obscure;
-		}
-    }
-    
-    //Reads the CSV data and map it to the data class
-    public static ArrayList<glassPartList> CSVReader(String CSV) throws Exception {
-
-        // Create a list to hold multiple glassPartLists
-        ArrayList<glassPartList> completePartList = new ArrayList<>();
-        
-        // Define a scanner object to read the CSV file
-        Scanner sc = new Scanner(new File(CSV));
-        
-        System.out.println(sc);
-        System.out.println(sc.hasNextLine());
-        
-        // Skip the header (assuming the first line has headers)
-		
-		if (sc.hasNextLine()) { sc.nextLine();}
-
-        // Read the CSV data
-        while (sc.hasNextLine()) {
-        	        	
-            String[] glassPartListDetails = sc.nextLine().split(",");  // Split line by commas
-            
-            glassPartList glassPartList = new glassPartList();
-            
-            //PartNumber
-            glassPartList.setPartNo(glassPartListDetails[0]);
-            
-            glassPartList.setPartName(glassPartListDetails[1]);
-            
-            glassPartList.setpUnit(glassPartListDetails[2]);
-            
-            glassPartList.setCost(glassPartListDetails[3]);
-            
-            glassPartList.setObscure(glassPartListDetails[4]);
-            
-            // Add the glassPartList to the list
-            completePartList.add(glassPartList);
-        }
-        
-        
-        // Close the scanner
-        sc.close();
-        
-        //Return the user list
-        return completePartList;
-    }
-    
-    //Main Selenium code for add the wizard Selenium things  
-    public static void glassListPartAdder(ArrayList<glassPartList> glassPartLists, String system) {
-
-    	WebDriver driver = new ChromeDriver();
-        String URL = "";
-        String username = "";
-        String password = "";
-        
-        if (system.equals("1")) {
-        	URL = localURL;
-        	username = userLocalTest;
-        	password = passwordLocalTest;
-        	//URL = STLURL;
-        	//username = userLiam;
-        	//password = passwordSTL;
-        }
-        else {
-        	//URL = localURL;
-        	//username = userLocalTest;
-        	//password = passwordLocalTest;
-        	URL = LDSURL;
-        	username = userJosh;
-        	password = passwordLDS;
-        }
-        
-        driver.get(URL);
-        //Maximise the window to be full screen but not f11 full screen
-        driver.manage().window().maximize();
-               
-        WebDriverWait wait = new WebDriverWait(driver,Duration.ofSeconds(10));
-        WebDriverWait wait2 = new WebDriverWait(driver,Duration.ofSeconds(20));
-        
-        WebElement loginUsername = wait.until(ExpectedConditions.elementToBeClickable(By.id("login_user_name")));
-        loginUsername.click();
-        loginUsername.sendKeys(username);        
-            
-        WebElement loginPassword = wait.until(ExpectedConditions.elementToBeClickable(By.id("login_password")));
-        loginPassword.click();
-        loginPassword.sendKeys(password); 
-            
-        WebElement submitLogin = wait.until(ExpectedConditions.elementToBeClickable(By.id("submit_button")));
-        submitLogin.click();
-            
-        try {
-        	Thread.sleep(500);
-    	} catch (InterruptedException e) {
-    		// TODO Auto-generated catch block
-    		e.printStackTrace();
-    	}
-        
-        hold();
-
-                          
-        // -------------------------------------------- Navigate to part list -------------------------------------------- //
-
-        //Now we can start item loop
-        driver.get(URL + glassURL);
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
         Actions actions = new Actions(driver);
-        Select dropdown;
         
-        for (glassPartList glassPartList : glassPartLists) {
-        	
-            actions.sendKeys(Keys.HOME).build().perform(); //scroll to top
-            
-        	WebElement qty = driver.findElement(By.xpath("/html/body/div[7]/div[2]"));
-			String qtyText = qty.getText();
-			qtyText = qtyText.substring(5);
+        driver.get(baseUrl + "/PricingAndConfig/PartList/GL");
 
-        	WebElement addPart = wait.until(ExpectedConditions.elementToBeClickable(By.id("add_part_button")));
-        	addPart.click();
-     
-        	
-        	//Add the part number 
-        	try {
-        		
-				WebElement partNumber = driver.findElement(By.id("part_no"));
-				partNumber.sendKeys(glassPartList.getPartNo());
-			} 
-        	catch (Exception e) 
-        	{
-				//print failure to console	
-				System.out.println("Failed to add part number");
-			}
-        	
-        	//----------------------------------------------------------------------------------------------------------------------------------------- \\
-        	
-        	try {
-				//Add the Name
-				WebElement partName = driver.findElement(By.id("part_name"));
-				partName.sendKeys(glassPartList.getPartName());
-			} 
-        	catch (Exception e) 
-        	{
-        		System.out.println(glassPartList.getPartNo() + " - failed to add part name");			
-        	}
-        	
-        	//-----------------------------------------------------------------Purchase UOM------------------------------------------------------------------------ \\
-        	try {
-				WebElement purchaseUOM = wait.until(
-						ExpectedConditions.elementToBeClickable(By.id("part_unit_name"))
-				    );
-				
-
-				dropdown = new Select(purchaseUOM);
-				dropdown.selectByVisibleText(glassPartList.getpUnit());
-				/**
-				WebElement UOM = driver.findElement(By.xpath("//*[@id=\"part_unit_name\"]"));
-				UOM.click();
-				
-				wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//*[@id=\"part_unit_name\"]")));
-				
-
-				//replace with proper drop-down selection
-				
-				String IPL = "//*[@id=\"part_unit_name\"]/option[contains(text(), '" + "m2" + "')]";
-							
-				WebElement UOFDropdown = wait.until(ExpectedConditions.elementToBeClickable(By.xpath(IPL)));
-
-				
-				**/
-
-			} catch (Exception e) {
-				System.out.println(glassPartList.getPartNo() + " - failed to add part UOM");
-			}
-        	
-        	//-----------------------------------------------------------------Cost of 1 M2------------------------------------------------------------------------ \\
-        	
-        	
-        	try {
-        		
-        		WebElement COF = driver.findElement(By.id("part_allocated_amount_in_purchase_unit"));
-        		COF.sendKeys("1");
-				
-			} catch (Exception e) {
-				// TODO: handle exception
-			}
-        	
-        	
-        	
-        	//-----------------------------------------------------------------Allocated UOM------------------------------------------------------------------------ \\
-        	try {
-				WebElement allocatedUOM = wait.until(
-						ExpectedConditions.elementToBeClickable(By.id("part_allocated_unit_name"))
-				    );
-				
-				/**
-				 
-				aUOM.click();
-				
-				wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//*[@id=\"part_allocated_unit_name\"]")));
-				
-
-				String IPL = "//*[@id=\"part_allocated_unit_name\"]/option[contains(text(), '" + "each" + "')]";
-							
-				WebElement dropdownOption = wait.until(ExpectedConditions.elementToBeClickable(By.xpath(IPL)));
-				
-				dropdownOption.click();
-				*/
-
-				dropdown = new Select(allocatedUOM);
-				dropdown.selectByVisibleText("each");
-				
-				
-			} catch (Exception e) {
-				System.out.println(glassPartList.getPartNo() + " - failed to add part aUOM");
-			}
-        	
-
-        	//-----------------------------------------------------------------COST------------------------------------------------------------------------ \\
-        	
-
-        	try {
-				//Add the Price
-				WebElement partPrice = driver.findElement(By.xpath("//*[@id=\"part_cost\"]"));
-				partPrice.sendKeys(glassPartList.getCost());
-			} 
-        	catch (Exception e) 
-        	{
-        		System.out.println(glassPartList.getPartNo() + " - failed to add part cost");
-			}
-
-       
-        	//-----------------------------------------------------------------Obscure Glass------------------------------------------------------------------------ \\
-        	
-        	try {
-				//Add the Price
-        		if (glassPartList.getObscure().toLowerCase().equals("yes")) {
-        			WebElement obscureGlass = driver.findElement(By.id("part_is_obscure_glass"));
-        			obscureGlass.click();
-        		}
-			} 
-        	catch (Exception e) 
-        	{
-				System.out.println("Failed to add glass obscurity...");
-			}
-        	
-        	
-			//----------------------------------------------------------------------------------------------------------------------------------------- \\
-        	
-        	
-        	
-        	try {
-				WebElement submitPart = wait.until(ExpectedConditions.elementToBeClickable(By.className("part_dialog_submit")));
-				
-				//Comment out on first test 
-				submitPart.click();
-
-				if (Integer.valueOf(qtyText) >= 17) {
-					Thread.sleep(1000);
-					WebElement toTop = wait
-							.until(ExpectedConditions.elementToBeClickable(By.xpath("//*[@id=\"scroll_to_top_div\"]")));
-					toTop.click();
-				}
-				
-			} catch (Exception e) {
-				System.out.println("Failed to submit or scroll to top");
-				e.printStackTrace();
-			}
-        	
-
-        	wait2.until(D -> {
-                try {
-                    // Wait for 1.5 seconds
-                    Thread.sleep(1500);
-                    actions.sendKeys(Keys.HOME).build().perform(); //scroll to top
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+        for (GlassPartItem item : items) {
+            try {
+                // 1. Scroll to top and click Add Part button
+                ((JavascriptExecutor)driver).executeScript("window.scrollTo(0, 0)");
+                
+                int attempts = 0;
+                while (attempts < 3) {
+                    try {
+                        WebElement addButton = wait.until(ExpectedConditions.elementToBeClickable(
+                            By.id("add_part_button")));
+                        ((JavascriptExecutor)driver).executeScript("arguments[0].scrollIntoView(true);", addButton);
+                        addButton.click();
+                        break;
+                    } catch (Exception e) {
+                        attempts++;
+                        if (attempts == 3) throw e;
+                        Thread.sleep(1000);
+                    }
                 }
-                // Return true to satisfy the condition
-                actions.sendKeys(Keys.HOME).build().perform(); //scroll to top
-                return true;
-            });
 
+                // 2. Fill basic fields
+                enterTextById(wait, "part_no", item.getPartNo());
+                enterTextById(wait, "part_name", item.getPartName());
 
+                // 3. Select dropdowns
+                selectDropdownByVisibleText(driver, "part_unit_name", item.getpUnit());
+                selectDropdownByVisibleText(driver, "part_allocated_unit_name", "each");
 
-    	}
-        
-        System.out.println("Import Finished");
+                // 4. Set allocated amount
+                enterTextById(wait, "part_allocated_amount_in_purchase_unit", "1");
 
+                // 5. Enter cost
+                enterTextById(wait, "part_cost", item.getCost());
+
+                // 6. Handle obscure glass
+                if ("yes".equalsIgnoreCase(item.getObscure())) {
+                    selectCheckboxOrRadioButton(driver, "part_is_obscure_glass");
+                }
+
+                // 7. Submit part
+                clickButtonById(driver, "part_dialog_submit_new");
+                
+                // 8. Wait for dialog to close and scroll to top
+                wait.until(ExpectedConditions.invisibilityOfElementLocated(
+                    By.id("part_dialog_submit_new")));
+                
+                // Scroll to top using multiple methods
+                ((JavascriptExecutor)driver).executeScript("window.scrollTo(0, 0)");
+                actions.sendKeys(Keys.HOME).perform();
+                Thread.sleep(500); // Small pause
+
+            } catch (Exception e) {
+                System.out.println("Error adding part " + item.getPartNo() + ": " + e.getMessage());
+                // Try to close any open dialogs
+                try {
+                    driver.findElement(By.cssSelector(".ui-dialog-titlebar-close")).click();
+                } catch (Exception ex) {
+                    // Ignore if we can't close it
+                }
+            }
         }
+    }
 }

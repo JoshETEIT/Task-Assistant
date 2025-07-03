@@ -4,6 +4,7 @@ import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -47,16 +48,20 @@ public class GlassPartImageUploader extends BasePartImageUploader {
 
     @Override
     protected boolean isMatch(String imageName, String partName) {
-        // For glass parts, we can be more lenient with matching
-        String[] imageWords = Arrays.stream(imageName.split(" "))
-            .filter(word -> !excludedWords.contains(word))
-            .toArray(String[]::new);
+        String cleanImageName = cleanName(imageName).toLowerCase();
+        String cleanPartName = cleanName(partName).toLowerCase();
         
-        // At least 50% of the words should match
-        long matchingWords = Arrays.stream(imageWords)
-            .filter(partName::contains)
-            .count();
-            
-        return matchingWords >= (imageWords.length / 2.0);
+        Set<String> imageWords = new HashSet<>(Arrays.asList(cleanImageName.split("\\s+")));
+        imageWords.removeAll(excludedWords);
+        
+        Set<String> partWords = new HashSet<>(Arrays.asList(cleanPartName.split("\\s+")));
+        partWords.removeAll(excludedWords);
+        
+        for (String word : imageWords) {
+            if (partWords.contains(word)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

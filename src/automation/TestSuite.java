@@ -22,9 +22,9 @@ public class TestSuite {
         SwingUtilities.invokeLater(() -> {
             String[] options = {
                 "Add Lead", 
-                "Save Drawing Settings", 
-                "Inject Drawing Settings",
-                "Upload Part Image"
+                "Import Ironmongery", 
+                "Import Glass Parts",
+                "Upload Part Images"
             };
             
             int choice = AutomationUI.showOptionDialog(
@@ -37,18 +37,20 @@ public class TestSuite {
             if (choice == JOptionPane.CLOSED_OPTION) System.exit(0);
             
             boolean runAddLead = (choice == 0);
-            boolean runInjectSettings = (choice == 2);
-            boolean runUploadImage = (choice == 3);
+            boolean runIronmongeryImport = (choice == 1);
+            boolean runGlassImport = (choice == 2);
+            boolean runUploadImages = (choice == 3);
             
-            new ServerUI(serverManager).showServerTable(runAddLead, runInjectSettings, runUploadImage);
+            new ServerUI(serverManager).showServerTable(runAddLead, runIronmongeryImport, runGlassImport, runUploadImages);
         });
     }
 
     public static void runSeleniumTest(
             ServerManager.Server s, 
             boolean runAddLead, 
-            boolean runInjectSettings,
-            boolean runUploadImage
+            boolean runIronmongeryImport,
+            boolean runGlassImport,
+            boolean runUploadImages
     ) {
         WebDriverManager.chromedriver().setup();
         WebDriver driver = new ChromeDriver();
@@ -71,72 +73,103 @@ public class TestSuite {
                 for (int i = 0; i < 5; i++) {
                     boolean success = AddNewLead.testFormSubmission(driver);
                     int progress = 75 + i * 5;
-                    // updateProgress("Form submission " + (success ? "succeeded" : "failed"), progress);
                     System.out.println((success ? "✅" : "❌") + " Test result for " + s.getName());
                     driver.get(s.getUrl() + "/Home");
                 }
             } 
-            else if (runInjectSettings) {
-                DrawingSettingsInjector.injectSettingsFromCSV(driver, wait, "drawing_settings.csv");
-                // updateProgress("Settings injected.", 100);
-                System.out.println("✅ Injected drawing settings for " + s.getName());
-            } 
-            else if (runUploadImage) {
-            	progressUI.close();
-                
-            	String folderPath = AutomationUI.showDirectoryChooser(
-            		    null, 
-            		    "Automation Suite | Select Images Directory"
-            		);
+            else if (runIronmongeryImport) {
+                progressUI.close();
+                String csvPath = AutomationUI.showFileChooser(
+                    null,
+                    "Automation Suite | Select Ironmongery CSV File"
+                );
 
-            		if (folderPath == null) {
-            		    progressUI.updateProgress(0, 0, "Operation cancelled");
-            		    progressUI.close();
-            		    return;
-            		}
-
-            		// Verify directory is accessible
-            		File dir = new File(folderPath);
-            		if (!dir.exists() || !dir.isDirectory()) {
-            		    AutomationUI.showMessageDialog(
-            		        null,
-            		        "The selected directory is not accessible",
-            		        "Directory Error",
-            		        JOptionPane.ERROR_MESSAGE
-            		    );
-            		    return;
-            		}
-
-                    String[] partTypes = {"Glass", "Ironmongery"};
-                    int partTypeChoice = AutomationUI.showOptionDialog(
-                        null,
-                        "Upload images for which part type?",
-                        "Automation Suite | Select Part Type",
-                        partTypes
-                    );
-                    
-                    if (partTypeChoice == JOptionPane.CLOSED_OPTION) {
-                        progressUI.close();
-                        return;
-                    }
-
-                    progressUI.showProgress("Automation Progress", "Starting upload...");
-                    progressUI.updateProgress(10, 0, "Preparing upload...");
-                    
+                if (csvPath != null) {
                     try {
-                        if (partTypeChoice == 0) {
-                            new GlassPartImageUploader(driver).uploadImagesFromFolder(folderPath);
-                        } else {
-                            new IronmongeryPartImageUploader(driver).uploadImagesFromFolder(folderPath);
-                        }
-                    } catch (Exception e) {
-                        AutomationUI.showMessageDialog(
-                            null, 
-                            "Upload failed: " + e.getMessage(), 
-                            "Error", 
-                            JOptionPane.ERROR_MESSAGE
+                        AddingIronmongery.importIronmongery(
+                            AddingIronmongery.CSVReader(csvPath),
+                            driver,
+                            s.getUrl()  // Pass server URL from your ServerManager.Server instance
                         );
-                    } finally {
+                    } catch (Exception e) {
+                        // Error handling
+                    }
+                }
+            }
+            else if (runGlassImport) {
+                progressUI.close();
+                String csvPath = AutomationUI.showFileChooser(
+                    null,
+                    "Automation Suite | Select Glass Parts CSV File"
+                );
+
+                if (csvPath != null) {
+                    try {
+                        GlassPartImport.importGlassParts(
+                            GlassPartImport.CSVReader(csvPath),
+                            driver,
+                            s.getUrl()  // Pass server URL from your ServerManager.Server instance
+                        );
+                    } catch (Exception e) {
+                        // Error handling
+                    }
+                }
+            }
+            else if (runUploadImages) {
+                progressUI.close();
+                
+                String folderPath = AutomationUI.showDirectoryChooser(
+                    null, 
+                    "Automation Suite | Select Images Directory"
+                );
+
+                if (folderPath == null) {
+                    progressUI.updateProgress(0, 0, "Operation cancelled");
+                    progressUI.close();
+                    return;
+                }
+
+                File dir = new File(folderPath);
+                if (!dir.exists() || !dir.isDirectory()) {
+                    AutomationUI.showMessageDialog(
+                        null,
+                        "The selected directory is not accessible",
+                        "Directory Error",
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                    return;
+                }
+
+                String[] partTypes = {"Glass", "Ironmongery"};
+                int partTypeChoice = AutomationUI.showOptionDialog(
+                    null,
+                    "Upload images for which part type?",
+                    "Automation Suite | Select Part Type",
+                    partTypes
+                );
+                
+                if (partTypeChoice == JOptionPane.CLOSED_OPTION) {
+                    progressUI.close();
+                    return;
+                }
+
+                progressUI.showProgress("Automation Progress", "Starting upload...");
+                progressUI.updateProgress(10, 0, "Preparing upload...");
+                
+                try {
+                    if (partTypeChoice == 0) {
+                        new GlassPartImageUploader(driver).uploadImagesFromFolder(folderPath);
+                    } else {
+                        new IronmongeryPartImageUploader(driver).uploadImagesFromFolder(folderPath);
+                    }
+                } catch (Exception e) {
+                    AutomationUI.showMessageDialog(
+                        null, 
+                        "Upload failed: " + e.getMessage(), 
+                        "Error", 
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                } finally {
                     new Thread(() -> {
                         try {
                             Thread.sleep(2000);
@@ -144,12 +177,6 @@ public class TestSuite {
                         progressUI.close();
                     }).start();
                 }
-            }
-            else {
-                DrawingSettingsCSV.saveSettings(driver, wait);
-                // updateProgress("Settings saved.", 100);
-                progressUI.updateProgress(100, 100, "Complete");
-                System.out.println("✅ Saved drawing settings for " + s.getName());
             }
 
         } catch (Exception e) {

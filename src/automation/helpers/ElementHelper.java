@@ -5,6 +5,7 @@ import org.openqa.selenium.support.ui.*;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Optional;
 
 public class ElementHelper {
     private static final int SHORT_WAIT_TIME = 3;
@@ -32,17 +33,23 @@ public class ElementHelper {
             Select select = new Select(dropdown);
             List<WebElement> options = select.getOptions();
 
-            boolean found = options.stream().anyMatch(o -> o.getText().equals(visibleText));
-            if (found) {
-                select.selectByVisibleText(visibleText);
+            // Case-insensitive matching
+            Optional<WebElement> matchingOption = options.stream()
+                .filter(o -> o.getText().equalsIgnoreCase(visibleText))
+                .findFirst();
+
+            if (matchingOption.isPresent()) {
+                select.selectByVisibleText(matchingOption.get().getText());
             } else if (!options.isEmpty()) {
-                select.selectByVisibleText(options.get(0).getText());
-                System.out.printf("Dropdown '%s': option '%s' not found. Using fallback.%n", id, visibleText);
+                select.selectByIndex(0); // Fallback to first option
+                System.out.printf("Dropdown '%s': option '%s' not found. Using fallback.%n", 
+                    id, visibleText);
             } else {
                 System.out.printf("Dropdown '%s' has no options.%n", id);
             }
         } catch (Exception e) {
-            System.out.printf("Dropdown with ID '%s' not found or not clickable.%n", id);
+            System.out.printf("Dropdown with ID '%s' not found or not clickable: %s%n", 
+                id, e.getMessage());
         }
     }
 
@@ -108,6 +115,16 @@ public class ElementHelper {
             dropdown.click();
         } catch (Exception e) {
             System.out.println("Multi-select dropdown not found or not interactable.");
+        }
+    }
+    
+    public static void clickElementByCss(WebDriver driver, String cssSelector) {
+        try {
+            new WebDriverWait(driver, Duration.ofSeconds(SHORT_WAIT_TIME))
+                .until(ExpectedConditions.elementToBeClickable(By.cssSelector(cssSelector)))
+                .click();
+        } catch (Exception e) {
+            System.out.printf("Element with CSS selector '%s' not clickable.%n", cssSelector);
         }
     }
 }

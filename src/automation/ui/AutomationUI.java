@@ -364,4 +364,68 @@ public class AutomationUI {
         Object result = dialog.getRootPane().getClientProperty("option");
         return result != null ? (int) result : JOptionPane.CLOSED_OPTION;
     }
+    
+    public static String showFileChooser(Component parent, String title) {
+        JDialog dialog = createStyledDialog(title, 600, 400);
+        JPanel content = (JPanel)((JPanel)dialog.getContentPane()).getComponent(1);
+        content.setLayout(new BorderLayout());
+
+        JFileChooser chooser = new JFileChooser(lastDirectory) {
+            protected JDialog createDialog(Component parent) throws HeadlessException {
+                JDialog d = super.createDialog(parent);
+                d.setUndecorated(false);
+                return d;
+            }
+        };
+        chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        chooser.setAcceptAllFileFilterUsed(true);
+        chooser.setControlButtonsAreShown(false);
+
+        content.add(chooser, BorderLayout.CENTER);
+
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setOpaque(false);
+        buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
+
+        JButton submitButton = createButton("Select File");
+        JButton cancelButton = createButton("Cancel");
+        cancelButton.setBackground(new Color(100, 100, 100));
+
+        final String[] result = { null };
+
+        submitButton.addActionListener(e -> {
+            File selected = chooser.getSelectedFile();
+            if (selected != null && selected.isFile()) {
+                lastDirectory = selected.getParentFile();
+                result[0] = selected.getAbsolutePath();
+                dialog.dispose();
+            } else {
+                showMessageDialog(dialog, 
+                    "Please select a valid file", 
+                    "Invalid Selection", 
+                    JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        cancelButton.addActionListener(e -> dialog.dispose());
+
+        buttonPanel.add(submitButton);
+        buttonPanel.add(Box.createHorizontalStrut(10));
+        buttonPanel.add(cancelButton);
+        content.add(buttonPanel, BorderLayout.SOUTH);
+
+        try {
+            UIManager.put("FileChooser.background", DIALOG_BG);
+            UIManager.put("FileChooser.foreground", TEXT_COLOR);
+            UIManager.put("FileChooser.font", BODY_FONT);
+            SwingUtilities.updateComponentTreeUI(chooser);
+        } catch (Exception e) {
+            System.err.println("Error styling file chooser: " + e.getMessage());
+        }
+
+        dialog.setModal(true);
+        dialog.setVisible(true);
+
+        return result[0];
+    }
 }
