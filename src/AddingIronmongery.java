@@ -35,20 +35,20 @@ import org.openqa.selenium.support.ui.WebDriverWait;
  */
 public class AddingIronmongery {
 	
-	public static final String localURL = "http://192.168.170.169:8081";
-	public static final String STLURL = "https://stilesashwindows.work";
-	public static final String twentyOneDegURL = "https://21degrees.work";
-	public static final String LDSURL = "https://ldsj.work";
-	public static final String ironmongeryURL = "/PricingAndConfig/PartList/IM";
+	public static final String localURL = "";
+	public static final String STLURL = "";
+	public static final String twentyOneDegURL = "";
+	public static final String LDSURL = "";
+	public static final String ironmongeryURL = "";
 	
-	public static final String userJosh = "holdenj";
-	public static final String passwordDemo = "F42brzH3";
-	public static final String userLocalTest = "testu";
-	public static final String passwordLocalTest = "12345aA";
-	public static final String passwordLDN = "Y8Tunm2e";
-	public static final String passwordSTL = "9m2JtCRr";
-	public static final String passwordTwentyOneDeg = "qvzIL1wI";
-	public static final String passwordLDS = "F42brzH3";
+	public static final String userJosh = "";
+	public static final String passwordDemo = "";
+	public static final String userLocalTest = "";
+	public static final String passwordLocalTest = "";
+	public static final String passwordLDN = "";
+	public static final String passwordSTL = "";
+	public static final String passwordTwentyOneDeg = "";
+	public static final String passwordLDS = "";
 	
 	
 	//Main Java class to run application

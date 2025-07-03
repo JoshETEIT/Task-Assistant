@@ -41,29 +41,29 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 
 public class GlassPartImport {
 	
-	public static final String demoURL = "https://demo.integratejs.co.uk";
-	public static final String NMJURL = "https://nathanmccarter.work/";
-	public static final String priceFileURL = "/PricingAndConfig/PriceFileEditor";
-	public static final String dboardURL = "https://dboard.integratejs.co.uk";
-	public static final String quotesURL = "/Lead/Details/Quote/";
-	public static final String localURL = "http://192.168.170.75:8081";
-	public static final String STLURL = "https://stilesashwindows.work";
-	public static final String twentyOneDegURL = "https://21degrees.work";
-	public static final String LDSURL = "https://ldsj.work/";
-	public static final String glassURL = "/PricingAndConfig/PartList/GL";
-	public static final String e2eURL = "https://e2eit.co.uk";
+	public static final String demoURL = "";
+	public static final String NMJURL = "";
+	public static final String priceFileURL = "";
+	public static final String dboardURL = "";
+	public static final String quotesURL = "";
+	public static final String localURL = "";
+	public static final String STLURL = "";
+	public static final String twentyOneDegURL = "";
+	public static final String LDSURL = "";
+	public static final String glassURL = "";
+	public static final String e2eURL = "";
 	
-	public static final String userJosh = "holdenj";
-	public static final String userLocalTest = "testu";
-	public static final String userNMJ = "holdenj";
-	public static final String passwordLocalTest = "12345aA";
-	public static final String passwordLDN = "Y8Tunm2e";
-	public static final String passwordSTL = "9m2JtCRr";
-	public static final String passwordTwentyOneDeg = "qvzIL1wI";
-	public static final String passwordE2E = "6k0MRZYt";
-	public static final String passwordDemo = "F42brzH3";
-	public static final String passwordNMJ = "5iuWF7b4";
-	public static final String passwordLDS = "F42brzH3";
+	public static final String userJosh = "";
+	public static final String userLocalTest = "";
+	public static final String userNMJ = "";
+	public static final String passwordLocalTest = "";
+	public static final String passwordLDN = "";
+	public static final String passwordSTL = "";
+	public static final String passwordTwentyOneDeg = "";
+	public static final String passwordE2E = "";
+	public static final String passwordDemo = "";
+	public static final String passwordNMJ = "";
+	public static final String passwordLDS = "";
 	
 	//Main Java class to run application
     public static void main(String[] args) throws Exception {
