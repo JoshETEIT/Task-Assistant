@@ -72,7 +72,6 @@ public class TestSuite {
             if (runAddLead) {
                 for (int i = 0; i < 5; i++) {
                     boolean success = AddNewLead.testFormSubmission(driver);
-                    int progress = 75 + i * 5;
                     System.out.println((success ? "✅" : "❌") + " Test result for " + s.getName());
                     driver.get(s.getUrl() + "/Home");
                 }

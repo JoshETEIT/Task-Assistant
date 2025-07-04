@@ -1,7 +1,6 @@
 package automation.ui;
 
 import javax.swing.*;
-import java.awt.*;
 
 public class ProgressUI {
     private JDialog progressDialog;

@@ -94,7 +94,7 @@ public abstract class BasePartImageUploader {
     protected boolean hasExistingImage(WebElement partRow) {
         try {
             WebElement imgElement = partRow.findElement(By.cssSelector("td.part_photo_dropdown_toggle img"));
-            String src = imgElement.getAttribute("src");
+            String src = imgElement.getDomProperty("src");
             // Check if src contains a thumbnail URL pattern or isn't the default camera icon
             return !src.contains("camera.svg") && 
                    (src.contains("Thumbnail") || src.matches(".*\\.(jpg|jpeg|png)$"));

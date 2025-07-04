@@ -1,7 +1,6 @@
 package automation.ui;
 
 import javax.swing.*;
-import javax.swing.border.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
@@ -29,6 +28,7 @@ public class AutomationUI {
     }
 
     // Enhanced dialog creation with automatic styling
+    @SuppressWarnings("serial")
     public static JDialog createStyledDialog(String title, int width, int height) {
         JDialog dialog = new JDialog();
         dialog.setUndecorated(true);
@@ -36,7 +36,8 @@ public class AutomationUI {
         
         // Main container with translucent background
         JPanel bgPanel = new JPanel(new BorderLayout()) {
-            @Override
+
+			@Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g;
@@ -230,6 +231,7 @@ public class AutomationUI {
         frame.setBackground(new Color(0, 0, 0, 0)); // Transparent background
         
         // Create background panel with same translucent effect as dialogs
+        @SuppressWarnings("serial")
         JPanel bgPanel = new JPanel(new BorderLayout()) {
             @Override
             protected void paintComponent(Graphics g) {
@@ -268,6 +270,7 @@ public class AutomationUI {
         content.setLayout(new BorderLayout());
 
         // Create file chooser without custom approveSelection
+        @SuppressWarnings("serial")
         JFileChooser chooser = new JFileChooser(lastDirectory) {
             protected JDialog createDialog(Component parent) throws HeadlessException {
                 JDialog d = super.createDialog(parent);
@@ -370,6 +373,7 @@ public class AutomationUI {
         JPanel content = (JPanel)((JPanel)dialog.getContentPane()).getComponent(1);
         content.setLayout(new BorderLayout());
 
+        @SuppressWarnings("serial")
         JFileChooser chooser = new JFileChooser(lastDirectory) {
             protected JDialog createDialog(Component parent) throws HeadlessException {
                 JDialog d = super.createDialog(parent);

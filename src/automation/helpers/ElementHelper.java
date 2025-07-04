@@ -63,7 +63,6 @@ public class ElementHelper {
     }
 
     public static boolean clickButtonWithRetry(WebDriver driver, String id, int retries, int waitSec) {
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(waitSec));
 
         for (int i = 0; i < retries; i++) {
             try {
@@ -97,14 +96,14 @@ public class ElementHelper {
             WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(SHORT_WAIT_TIME));
             WebElement dropdown = wait.until(ExpectedConditions.elementToBeClickable(
                     By.cssSelector("[id^='ms-list-']")));
-            String dropdownId = dropdown.getAttribute("id");
+            String dropdownId = dropdown.getDomProperty("id");
             dropdown.click();
 
             List<WebElement> checkboxes = wait.until(ExpectedConditions.visibilityOfAllElementsLocatedBy(
                     By.cssSelector("#" + dropdownId + " .ms-options input[type='checkbox']")));
 
             for (WebElement checkbox : checkboxes) {
-                String value = checkbox.getAttribute("value");
+                String value = checkbox.getDomProperty("value");
                 for (String target : values) {
                     if (value.equalsIgnoreCase(target) && !checkbox.isSelected()) {
                         checkbox.click();

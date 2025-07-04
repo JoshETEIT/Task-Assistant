@@ -22,7 +22,9 @@ public class ServerUI {
         
         String[] columns = {"Name", "URL", "Username", "Select", "Edit", "Delete"};
         DefaultTableModel model = new DefaultTableModel(columns, 0) {
-            @Override public boolean isCellEditable(int row, int column) {
+			private static final long serialVersionUID = 1L;
+
+			@Override public boolean isCellEditable(int row, int column) {
                 return column >= 3;
             }
         };
@@ -64,7 +66,9 @@ public class ServerUI {
         header.setOpaque(true);
         
         DefaultTableCellRenderer cellRenderer = new DefaultTableCellRenderer() {
-            @Override
+			private static final long serialVersionUID = 1L;
+
+			@Override
             public Component getTableCellRendererComponent(JTable table, Object value,
                     boolean isSelected, boolean hasFocus, int row, int column) {
                 
@@ -158,7 +162,9 @@ showServerTable(runAddLead, runIronmongeryImport, runGlassImport, runUploadImage
         });
 
         table.getColumnModel().getColumn(colIndex).setCellEditor(new DefaultCellEditor(new JCheckBox()) {
-            @Override
+			private static final long serialVersionUID = 1L;
+
+			@Override
             public Component getTableCellEditorComponent(JTable tbl, Object val, boolean sel, int row, int col) {
                 JButton btn = AutomationUI.createButton(label);
                 if (disableRowIndex != -1 && row >= disableRowIndex && !label.equals("Edit")) {
