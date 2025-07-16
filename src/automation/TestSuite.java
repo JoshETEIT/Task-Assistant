@@ -19,12 +19,17 @@ public class TestSuite {
     private static ProgressUI progressUI = new ProgressUI();
 
     public static void main(String[] args) {
+        startApplication();
+    }
+
+    public static void startApplication() {
         SwingUtilities.invokeLater(() -> {
             String[] options = {
                 "Add Lead", 
                 "Import Ironmongery", 
                 "Import Glass Parts",
-                "Upload Part Images"
+                "Upload Part Images",
+                "Exit"  // Added Exit option
             };
             
             int choice = AutomationUI.showOptionDialog(
@@ -34,7 +39,10 @@ public class TestSuite {
                 options
             );
 
-            if (choice == JOptionPane.CLOSED_OPTION) System.exit(0);
+            // Handle exit option
+            if (choice == 4 || choice == JOptionPane.CLOSED_OPTION) {
+                System.exit(0);
+            }
             
             boolean runAddLead = (choice == 0);
             boolean runIronmongeryImport = (choice == 1);
@@ -187,7 +195,9 @@ public class TestSuite {
             );
         } finally {
             progressUI.close();
-            driver.quit();
+            // REMOVED driver.quit() - keeps browser open
+            // Restart application to show task selection again
+            SwingUtilities.invokeLater(() -> TestSuite.startApplication());
         }
     }
 }
