@@ -29,7 +29,7 @@ public class TestSuite {
                 "Import Ironmongery", 
                 "Import Glass Parts",
                 "Upload Part Images",
-                "Exit"  // Added Exit option
+                "Exit"
             };
             
             int choice = AutomationUI.showOptionDialog(
@@ -39,7 +39,6 @@ public class TestSuite {
                 options
             );
 
-            // Handle exit option
             if (choice == 4 || choice == JOptionPane.CLOSED_OPTION) {
                 System.exit(0);
             }
@@ -96,10 +95,10 @@ public class TestSuite {
                         AddingIronmongery.importIronmongery(
                             AddingIronmongery.CSVReader(csvPath),
                             driver,
-                            s.getUrl()  // Pass server URL from your ServerManager.Server instance
+                            s.getUrl()
                         );
                     } catch (Exception e) {
-                        // Error handling
+                        e.printStackTrace();
                     }
                 }
             }
@@ -115,16 +114,15 @@ public class TestSuite {
                         GlassPartImport.importGlassParts(
                             GlassPartImport.CSVReader(csvPath),
                             driver,
-                            s.getUrl()  // Pass server URL from your ServerManager.Server instance
+                            s.getUrl()
                         );
                     } catch (Exception e) {
-                        // Error handling
+                        e.printStackTrace();
                     }
                 }
             }
             else if (runUploadImages) {
                 progressUI.close();
-                
                 String folderPath = AutomationUI.showDirectoryChooser(
                     null, 
                     "Automation Suite | Select Images Directory"
@@ -195,8 +193,6 @@ public class TestSuite {
             );
         } finally {
             progressUI.close();
-            // REMOVED driver.quit() - keeps browser open
-            // Restart application to show task selection again
             SwingUtilities.invokeLater(() -> TestSuite.startApplication());
         }
     }

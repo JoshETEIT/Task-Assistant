@@ -68,25 +68,36 @@ public abstract class BasePartImageUploader {
 
     protected boolean processPartRow(WebElement partRow, File[] imageFiles) {
         try {
-            String partName = partRow.findElements(By.tagName("td")).get(2).getText().trim();
+            WebElement partNameCell = partRow.findElements(By.tagName("td")).get(2);
+            
+            // Get only the direct text content, excluding button text
+            String partName = ((JavascriptExecutor)driver).executeScript(
+                "return arguments[0].childNodes[0].textContent.trim();", 
+                partNameCell
+            ).toString();
+            
             String cleanPartName = cleanName(partName);
             
             // Check if part already has an image
             if (hasExistingImage(partRow)) {
                 System.out.println("ℹ️ Part '" + partName + "' already has an image - skipping");
+                clearHighlight(partRow); // No highlight for existing images
                 return false;
             }
             
             Optional<File> matchingImage = findMatchingImage(cleanPartName, imageFiles);
             if (matchingImage.isEmpty()) {
                 System.out.println("ℹ️ No matching image found for part: " + partName);
+                highlightRow(partRow, "red"); // Red for no match
                 return false;
             }
             
             uploadImage(partRow, matchingImage.get());
+            highlightRow(partRow, "green"); // Green for successful upload
             return true;
         } catch (Exception e) {
             System.out.println("❌ Error processing part row: " + e.getMessage());
+            highlightRow(partRow, "red"); // Red for errors
             return false;
         }
     }
@@ -178,5 +189,27 @@ public abstract class BasePartImageUploader {
         
         System.out.println("✅ Uploaded image for part: " + 
             partRow.findElements(By.tagName("td")).get(2).getText().trim());
+    }
+    
+    protected void highlightRow(WebElement row, String color) {
+        try {
+            ((JavascriptExecutor) driver).executeScript(
+                "arguments[0].style.border = '3px solid " + color + "';", 
+                row
+            );
+        } catch (Exception e) {
+            System.out.println("Couldn't highlight row: " + e.getMessage());
+        }
+    }
+
+    protected void clearHighlight(WebElement row) {
+        try {
+            ((JavascriptExecutor) driver).executeScript(
+                "arguments[0].style.border = '';", 
+                row
+            );
+        } catch (Exception e) {
+            System.out.println("Couldn't clear highlight: " + e.getMessage());
+        }
     }
 }

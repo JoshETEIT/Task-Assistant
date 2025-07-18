@@ -22,9 +22,13 @@ public class ServerUI {
         
         String[] columns = {"Name", "URL", "Username", "Select", "Edit", "Delete"};
         DefaultTableModel model = new DefaultTableModel(columns, 0) {
+            /**
+			 * 
+			 */
 			private static final long serialVersionUID = 1L;
 
-			@Override public boolean isCellEditable(int row, int column) {
+			@Override 
+            public boolean isCellEditable(int row, int column) {
                 return column >= 3;
             }
         };
@@ -35,7 +39,6 @@ public class ServerUI {
         JPanel contentPanel = new JPanel(new BorderLayout());
         contentPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         contentPanel.setOpaque(false);
-        
         contentPanel.add(AutomationUI.createLabel("Server Management Panel"), BorderLayout.NORTH);
         
         JScrollPane scrollPane = new JScrollPane(table);
@@ -66,6 +69,9 @@ public class ServerUI {
         header.setOpaque(true);
         
         DefaultTableCellRenderer cellRenderer = new DefaultTableCellRenderer() {
+            /**
+			 * 
+			 */
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -102,53 +108,53 @@ public class ServerUI {
     private void populateTable(DefaultTableModel model, JTable table, 
             boolean runAddLead, boolean runIronmongeryImport, 
             boolean runGlassImport, boolean runUploadImages) {
-List<ServerManager.Server> servers = serverManager.getServers();
+        List<ServerManager.Server> servers = serverManager.getServers();
 
-for (ServerManager.Server s : servers) {
-model.addRow(s.toRow());
-}
-model.addRow(new Object[]{"", "", "", "", "Add", ""});
+        for (ServerManager.Server s : servers) {
+            model.addRow(s.toRow());
+        }
+        model.addRow(new Object[]{"", "", "", "", "Add", ""});
 
-addActionButtons(table, servers, runAddLead, runIronmongeryImport, runGlassImport, runUploadImages);
-}
+        addActionButtons(table, servers, runAddLead, runIronmongeryImport, runGlassImport, runUploadImages);
+    }
 
-private void addActionButtons(JTable table, List<ServerManager.Server> servers,
-               boolean runAddLead, boolean runIronmongeryImport, 
-               boolean runGlassImport, boolean runUploadImages) {
-addButtonColumn(table, 3, "Select", row -> {
-if (row >= servers.size()) return;
-frame.dispose();
-new Thread(() -> 
-TestSuite.runSeleniumTest(
-   servers.get(row), 
-   runAddLead, 
-   runIronmongeryImport, 
-   runGlassImport,
-   runUploadImages
-)
-).start();
-}, servers.size());
+    private void addActionButtons(JTable table, List<ServerManager.Server> servers,
+                   boolean runAddLead, boolean runIronmongeryImport, 
+                   boolean runGlassImport, boolean runUploadImages) {
+        addButtonColumn(table, 3, "Select", row -> {
+            if (row >= servers.size()) return;
+            frame.dispose();
+            new Thread(() -> 
+                TestSuite.runSeleniumTest(
+                    servers.get(row), 
+                    runAddLead, 
+                    runIronmongeryImport,
+                    runGlassImport,
+                    runUploadImages
+                )
+            ).start();
+        }, servers.size());
 
-addButtonColumn(table, 4, "Edit", row -> {
-ServerManager.Server existing = row < servers.size() ? servers.get(row) : null;
-showEditDialog(existing, row, runAddLead, runIronmongeryImport, runGlassImport, runUploadImages);
-}, -1);
+        addButtonColumn(table, 4, "Edit", row -> {
+            ServerManager.Server existing = row < servers.size() ? servers.get(row) : null;
+            showEditDialog(existing, row, runAddLead, runIronmongeryImport, runGlassImport, runUploadImages);
+        }, -1);
 
-addButtonColumn(table, 5, "Delete", row -> {
-if (row >= servers.size()) return;
-int confirm = AutomationUI.showOptionDialog(
-frame, 
-"Delete this server?", 
-"Confirm Delete", 
-new String[]{"Delete", "Cancel"}
-);
-if (confirm == 0) {
-serverManager.removeServer(row);
-frame.dispose();
-showServerTable(runAddLead, runIronmongeryImport, runGlassImport, runUploadImages);
-}
-}, servers.size());
-}
+        addButtonColumn(table, 5, "Delete", row -> {
+            if (row >= servers.size()) return;
+            int confirm = AutomationUI.showOptionDialog(
+                frame, 
+                "Delete this server?", 
+                "Confirm Delete", 
+                new String[]{"Delete", "Cancel"}
+            );
+            if (confirm == 0) {
+                serverManager.removeServer(row);
+                frame.dispose();
+                showServerTable(runAddLead, runIronmongeryImport, runGlassImport, runUploadImages);
+            }
+        }, servers.size());
+    }
 
     private void addButtonColumn(JTable table, int colIndex, String label,
                                IntConsumer onClick, int disableRowIndex) {
@@ -162,6 +168,9 @@ showServerTable(runAddLead, runIronmongeryImport, runGlassImport, runUploadImage
         });
 
         table.getColumnModel().getColumn(colIndex).setCellEditor(new DefaultCellEditor(new JCheckBox()) {
+            /**
+			 * 
+			 */
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -196,7 +205,8 @@ showServerTable(runAddLead, runIronmongeryImport, runGlassImport, runUploadImage
         );
         
         JPanel panel = new JPanel(new GridBagLayout());
-        panel.setOpaque(false);
+        panel.setOpaque(true);
+        panel.setBackground(AutomationUI.DIALOG_BG);
         panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(5, 5, 5, 5);

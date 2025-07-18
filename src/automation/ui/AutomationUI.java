@@ -1,16 +1,19 @@
 package automation.ui;
 
 import javax.swing.*;
+
+import automation.TestSuite;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 
 public class AutomationUI {
-    // Theme constants - Updated with more comprehensive defaults
-    public static final Color TITLE_BAR_COLOR = new Color(50, 64, 65); // Dark teal
-    public static final Color DIALOG_BG = new Color(50, 64, 65, 220); // Translucent version
+    // Theme constants
+    public static final Color TITLE_BAR_COLOR = new Color(50, 64, 65);
+    public static final Color DIALOG_BG = new Color(50, 64, 65, 220);
     public static final Color PRIMARY_COLOR = new Color(0, 158, 153);
-    public static final Color TEXT_COLOR = Color.WHITE; // Default to white
+    public static final Color TEXT_COLOR = Color.WHITE;
     public static final Font TITLE_FONT = new Font("Segoe UI", Font.BOLD, 16);
     public static final Font BODY_FONT = new Font("Segoe UI", Font.PLAIN, 14);
     public static final Font BUTTON_FONT = new Font("Segoe UI", Font.BOLD, 14);
@@ -27,51 +30,30 @@ public class AutomationUI {
         UIManager.put("ProgressBar.foreground", PRIMARY_COLOR);
     }
 
-    // Enhanced dialog creation with automatic styling
-    @SuppressWarnings("serial")
-    public static JDialog createStyledDialog(String title, int width, int height) {
-        JDialog dialog = new JDialog();
-        dialog.setUndecorated(true);
-        dialog.setBackground(new Color(0, 0, 0, 0)); // Transparent background
-        
-        // Main container with translucent background
-        JPanel bgPanel = new JPanel(new BorderLayout()) {
-
-			@Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2d = (Graphics2D) g;
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2d.setColor(DIALOG_BG);
-                g2d.fillRect(0, 0, getWidth(), getHeight());
-            }
-        };
-        bgPanel.setOpaque(false);
-        
-        // Add title bar (now always included)
-        bgPanel.add(createTitleBar(title, dialog), BorderLayout.NORTH);
-        
-        // Content panel with automatic styling
-        JPanel contentPanel = new JPanel();
-        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
-        contentPanel.setOpaque(false);
-        contentPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
-        bgPanel.add(contentPanel, BorderLayout.CENTER);
-        
-        dialog.setContentPane(bgPanel);
-        dialog.setSize(width, height);
-        dialog.setLocationRelativeTo(null);
-        
-        return dialog;
-    }
-
-    // Title bar factory - now always consistent
+    // Title bar factory with home button
     private static JPanel createTitleBar(String fullTitle, Window window) {
         JPanel titlePanel = new JPanel(new BorderLayout());
         titlePanel.setBackground(TITLE_BAR_COLOR);
         titlePanel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
         
-        // Split title into parts if it contains " - "
+        // Add mouse listeners for dragging
+        final Point[] offset = new Point[1];
+        titlePanel.addMouseListener(new MouseAdapter() {
+            public void mousePressed(MouseEvent e) {
+                offset[0] = new Point(e.getPoint());
+            }
+        });
+        titlePanel.addMouseMotionListener(new MouseAdapter() {
+            public void mouseDragged(MouseEvent e) {
+                if (offset[0] != null) {
+                    Point newLoc = e.getLocationOnScreen();
+                    newLoc.translate(-offset[0].x, -offset[0].y);
+                    window.setLocation(newLoc);
+                }
+            }
+        });
+        
+        // Split title into parts if it contains " | "
         String[] titleParts = fullTitle.split(" \\| ", 2);
         
         // Create a panel for the title components
@@ -82,8 +64,6 @@ public class AutomationUI {
         JLabel part1 = new JLabel(titleParts[0]);
         part1.setFont(TITLE_FONT);
         part1.setForeground(Color.WHITE);
-        
-        // Add first part
         titleContent.add(part1);
         
         // If there's a second part, add it with primary color
@@ -99,22 +79,38 @@ public class AutomationUI {
             titleContent.add(part2);
         }
         
-        // Drag functionality
-        final Point[] offset = new Point[1];
-        titlePanel.addMouseListener(new MouseAdapter() {
-            public void mousePressed(MouseEvent e) {
-                offset[0] = new Point(e.getPoint());
-            }
-        });
-        titlePanel.addMouseMotionListener(new MouseAdapter() {
-            public void mouseDragged(MouseEvent e) {
-                Point newLoc = e.getLocationOnScreen();
-                newLoc.translate(-offset[0].x, -offset[0].y);
-                window.setLocation(newLoc);
-            }
-        });
-        
         titlePanel.add(titleContent, BorderLayout.CENTER);
+        
+        // Create button panel for close and home buttons
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        buttonPanel.setOpaque(false);
+        
+        // Make buttons non-draggable
+        MouseAdapter preventDrag = new MouseAdapter() {};
+        buttonPanel.addMouseListener(preventDrag);
+        buttonPanel.addMouseMotionListener(preventDrag);
+        
+        // Only add home button if not the main dialog
+        if (!fullTitle.contains("Select Action")) {
+            JLabel homeLabel = new JLabel("⌂");
+            homeLabel.setFont(new Font("Arial", Font.BOLD, 18));
+            homeLabel.setForeground(TEXT_COLOR);
+            homeLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
+            homeLabel.setToolTipText("Return to main menu");
+            homeLabel.addMouseListener(new MouseAdapter() {
+                public void mouseEntered(MouseEvent e) {
+                    homeLabel.setForeground(PRIMARY_COLOR);
+                }
+                public void mouseExited(MouseEvent e) {
+                    homeLabel.setForeground(TEXT_COLOR);
+                }
+                public void mouseClicked(MouseEvent e) {
+                    window.dispose();
+                    TestSuite.startApplication();
+                }
+            });
+            buttonPanel.add(homeLabel);
+        }
         
         // Close button
         JLabel closeLabel = new JLabel("×");
@@ -133,15 +129,53 @@ public class AutomationUI {
             }
         });
         
-        titlePanel.add(closeLabel, BorderLayout.EAST);
+        buttonPanel.add(closeLabel);
+        titlePanel.add(buttonPanel, BorderLayout.EAST);
         return titlePanel;
     }
 
-    // Updated component factories with automatic styling
+    // Dialog creation with automatic styling
+    @SuppressWarnings("serial")
+	public static JDialog createStyledDialog(String title, int width, int height) {
+        JDialog dialog = new JDialog();
+        dialog.setUndecorated(true);
+        dialog.setBackground(new Color(0, 0, 0, 0));
+        
+        // Main container with translucent effect
+        JPanel bgPanel = new JPanel(new BorderLayout()) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2d.setColor(DIALOG_BG);
+                g2d.fillRect(0, 0, getWidth(), getHeight());
+            }
+        };
+        bgPanel.setOpaque(false);
+        
+        // Add title bar (with home and close buttons)
+        bgPanel.add(createTitleBar(title, dialog), BorderLayout.NORTH);
+        
+        // Content panel with automatic styling
+        JPanel contentPanel = new JPanel();
+        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+        contentPanel.setOpaque(false);
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        bgPanel.add(contentPanel, BorderLayout.CENTER);
+        
+        dialog.setContentPane(bgPanel);
+        dialog.setSize(width, height);
+        dialog.setLocationRelativeTo(null);
+        
+        return dialog;
+    }
+
+    // Component factories with automatic styling
     public static JLabel createLabel(String text) {
         JLabel label = new JLabel(text);
         label.setFont(BODY_FONT);
-        label.setForeground(TEXT_COLOR); // Now automatically white
+        label.setForeground(TEXT_COLOR);
         label.setOpaque(false);
         return label;
     }
@@ -160,12 +194,10 @@ public class AutomationUI {
         JDialog dialog = createStyledDialog(title, 400, 200);
         JPanel content = (JPanel)((JPanel)dialog.getContentPane()).getComponent(1);
         
-        // Message label (automatically gets white text from createLabel)
         JLabel messageLabel = createLabel(message);
         messageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         content.add(messageLabel);
         
-        // OK button
         JButton okButton = createButton("OK");
         okButton.addActionListener(e -> dialog.dispose());
         
@@ -185,13 +217,11 @@ public class AutomationUI {
         
         final String[] result = { null };
         
-        // Message label
         content.add(createLabel(message));
         content.add(Box.createVerticalStrut(10));
         
-        // Input field
         JTextField textField = new JTextField(20);
-        textField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30)); // Fixed height
+        textField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
         textField.setPreferredSize(new Dimension(300, 30));
         textField.setFont(BODY_FONT);
         textField.setOpaque(true);
@@ -199,7 +229,6 @@ public class AutomationUI {
         textField.setForeground(TEXT_COLOR);
         content.add(textField);
         
-        // Button panel
         JPanel buttonPanel = new JPanel();
         buttonPanel.setOpaque(false);
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
@@ -225,26 +254,23 @@ public class AutomationUI {
         return result[0];
     }
     
-    public static JFrame createMainFrame(String title, int width, int height) {
+    @SuppressWarnings("serial")
+	public static JFrame createMainFrame(String title, int width, int height) {
         JFrame frame = new JFrame(title);
         frame.setUndecorated(true);
-        frame.setBackground(new Color(0, 0, 0, 0)); // Transparent background
+        frame.setBackground(new Color(0, 0, 0, 0));
         
-        // Create background panel with same translucent effect as dialogs
-        @SuppressWarnings("serial")
         JPanel bgPanel = new JPanel(new BorderLayout()) {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g;
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2d.setColor(DIALOG_BG); // Using same translucent background as dialogs
+                g2d.setColor(DIALOG_BG);
                 g2d.fillRect(0, 0, getWidth(), getHeight());
             }
         };
         bgPanel.setOpaque(false);
-        
-        // Add title bar (same as dialogs)
         bgPanel.add(createTitleBar(title, frame), BorderLayout.NORTH);
         
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -255,37 +281,29 @@ public class AutomationUI {
         return frame;
     }
 
-    public static String showDirectoryChooser(Component parent, String title) {
-        // Initialize lastDirectory
-        if (lastDirectory == null) {
-            lastDirectory = new File(System.getProperty("user.dir"));
-        }
-        if (!lastDirectory.exists() || !lastDirectory.canRead()) {
+    @SuppressWarnings("serial")
+	public static String showDirectoryChooser(Component parent, String title) {
+        if (lastDirectory == null || !lastDirectory.exists() || !lastDirectory.canRead()) {
             lastDirectory = new File(System.getProperty("user.dir"));
         }
 
-        // Create dialog with custom UI
         JDialog dialog = createStyledDialog(title, 600, 400);
         JPanel content = (JPanel)((JPanel)dialog.getContentPane()).getComponent(1);
         content.setLayout(new BorderLayout());
 
-        // Create file chooser without custom approveSelection
-        @SuppressWarnings("serial")
         JFileChooser chooser = new JFileChooser(lastDirectory) {
             protected JDialog createDialog(Component parent) throws HeadlessException {
                 JDialog d = super.createDialog(parent);
-                d.setUndecorated(false); // Keep native decorations for better behavior
+                d.setUndecorated(false);
                 return d;
             }
         };
         chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         chooser.setAcceptAllFileFilterUsed(false);
-        chooser.setControlButtonsAreShown(false); // Hide default approve/cancel buttons
+        chooser.setControlButtonsAreShown(false);
 
-        // Add chooser to dialog
         content.add(chooser, BorderLayout.CENTER);
 
-        // Create custom button panel
         JPanel buttonPanel = new JPanel();
         buttonPanel.setOpaque(false);
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
@@ -317,7 +335,6 @@ public class AutomationUI {
         buttonPanel.add(cancelButton);
         content.add(buttonPanel, BorderLayout.SOUTH);
 
-        // Apply UI styling
         try {
             UIManager.put("FileChooser.background", DIALOG_BG);
             UIManager.put("FileChooser.foreground", TEXT_COLOR);
@@ -333,7 +350,6 @@ public class AutomationUI {
         return result[0];
     }
 
-    // Standard dialogs will now automatically inherit all styling
     public static int showOptionDialog(Component parent, String message, String title, String[] options) {
         JDialog dialog = createStyledDialog(title, 400, 200);
         JPanel content = (JPanel)((JPanel)dialog.getContentPane()).getComponent(1);
@@ -341,9 +357,7 @@ public class AutomationUI {
         
         JLabel messageLabel = createLabel(message);
         messageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        //content.add(Box.createVerticalGlue()); // Add flexible space
         content.add(messageLabel);
-        //content.add(Box.createVerticalGlue());
         
         JPanel optionsPanel = new JPanel();
         optionsPanel.setOpaque(false);
@@ -368,12 +382,12 @@ public class AutomationUI {
         return result != null ? (int) result : JOptionPane.CLOSED_OPTION;
     }
     
-    public static String showFileChooser(Component parent, String title) {
+    @SuppressWarnings("serial")
+	public static String showFileChooser(Component parent, String title) {
         JDialog dialog = createStyledDialog(title, 600, 400);
         JPanel content = (JPanel)((JPanel)dialog.getContentPane()).getComponent(1);
         content.setLayout(new BorderLayout());
 
-        @SuppressWarnings("serial")
         JFileChooser chooser = new JFileChooser(lastDirectory) {
             protected JDialog createDialog(Component parent) throws HeadlessException {
                 JDialog d = super.createDialog(parent);
