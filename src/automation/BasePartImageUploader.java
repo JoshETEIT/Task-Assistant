@@ -24,14 +24,14 @@ public abstract class BasePartImageUploader {
                 throw new RuntimeException("Image folder not found or not accessible: " + imagesFolderPath);
             }
 
-            File[] imageFiles = imagesFolder.listFiles((dir, name) -> 
-                name.toLowerCase().matches(".*\\.(jpg|jpeg|png)$"));
-            
-            if (imageFiles == null || imageFiles.length == 0) {
+            // Get all image files recursively
+            List<File> imageFiles = listImageFilesRecursively(imagesFolder);
+
+            if (imageFiles.isEmpty()) {
                 throw new RuntimeException("No image files found in: " + imagesFolderPath);
             }
 
-            System.out.println("\n=== Starting upload with " + imageFiles.length + " images ===");
+            System.out.println("\n=== Starting upload with " + imageFiles.size() + " images ===");
             
             navigateToPartList();
             List<WebElement> partRows = getPartRows();
@@ -66,7 +66,7 @@ public abstract class BasePartImageUploader {
     protected abstract List<WebElement> getPartRows();
     protected abstract boolean isMatch(String imageName, String partName);
 
-    protected boolean processPartRow(WebElement partRow, File[] imageFiles) {
+    protected boolean processPartRow(WebElement partRow, List<File> imageFiles) {
         try {
             WebElement partNameCell = partRow.findElements(By.tagName("td")).get(2);
             
@@ -101,6 +101,26 @@ public abstract class BasePartImageUploader {
             return false;
         }
     }
+    
+    private List<File> listImageFilesRecursively(File folder) {
+        List<File> result = new ArrayList<>();
+        if (folder.isDirectory()) {
+            File[] files = folder.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    if (file.isDirectory()) {
+                        result.addAll(listImageFilesRecursively(file));
+                    } else {
+                        String name = file.getName().toLowerCase();
+                        if (name.matches(".*\\.(jpg|jpeg|png)$")) {
+                            result.add(file);
+                        }
+                    }
+                }
+            }
+        }
+        return result;
+    }
 
     protected boolean hasExistingImage(WebElement partRow) {
         try {
@@ -122,7 +142,7 @@ public abstract class BasePartImageUploader {
             .trim();
     }
 
-    protected Optional<File> findMatchingImage(String cleanPartName, File[] imageFiles) {
+    protected Optional<File> findMatchingImage(String cleanPartName, List<File> imageFiles) {
         List<File> potentialMatches = new ArrayList<>();
         
         for (File imageFile : imageFiles) {
