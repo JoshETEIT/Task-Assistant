@@ -25,11 +25,12 @@ public class TestSuite {
     public static void startApplication() {
         SwingUtilities.invokeLater(() -> {
             String[] options = {
-                "Add Lead", 
-                "Import Ironmongery", 
-                "Import Glass Parts",
-                "Upload Part Images",
-                "Exit"
+            		"Add Lead", 
+            	    "Import Ironmongery", 
+            	    "Import Glass Parts",
+            	    "Upload Part Images",
+            	    "Update Ironmongery Defaults",
+            	    "Exit"
             };
             
             int choice = AutomationUI.showOptionDialog(
@@ -39,7 +40,7 @@ public class TestSuite {
                 options
             );
 
-            if (choice == 4 || choice == JOptionPane.CLOSED_OPTION) {
+            if (choice == options.length - 1 || choice == JOptionPane.CLOSED_OPTION) {
                 System.exit(0);
             }
             
@@ -47,8 +48,9 @@ public class TestSuite {
             boolean runIronmongeryImport = (choice == 1);
             boolean runGlassImport = (choice == 2);
             boolean runUploadImages = (choice == 3);
+            boolean runUpdateDefaults = (choice == 4);
             
-            new ServerUI(serverManager).showServerTable(runAddLead, runIronmongeryImport, runGlassImport, runUploadImages);
+            new ServerUI(serverManager).showServerTable(runAddLead, runIronmongeryImport, runGlassImport, runUploadImages, runUpdateDefaults);
         });
     }
 
@@ -57,7 +59,8 @@ public class TestSuite {
             boolean runAddLead, 
             boolean runIronmongeryImport,
             boolean runGlassImport,
-            boolean runUploadImages
+            boolean runUploadImages, 
+            boolean runUpdateDefaults
     ) {
         WebDriverManager.chromedriver().setup();
         WebDriver driver = new ChromeDriver();
@@ -182,6 +185,10 @@ public class TestSuite {
                         progressUI.close();
                     }).start();
                 }
+            }
+            else if (runUpdateDefaults) {
+                boolean success = new UpdateIronmongeryDefaults(driver).updateDefaults(s.getUrl());
+                System.out.println((success ? "✅" : "❌") + " Update ironmongery defaults result for " + s.getName());
             }
 
         } catch (Exception e) {

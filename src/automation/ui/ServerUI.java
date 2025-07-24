@@ -16,8 +16,11 @@ public class ServerUI {
         this.serverManager = serverManager;
     }
 
-    public void showServerTable(boolean runAddLead, boolean runIronmongeryImport, 
-                               boolean runGlassImport, boolean runUploadImages) {
+    public void showServerTable(boolean runAddLead, 
+    						   boolean runIronmongeryImport, 
+                               boolean runGlassImport, 
+                               boolean runUploadImages,
+                               boolean runUpdateDefaults) {
         frame = AutomationUI.createMainFrame("Server Management", 900, 500);
         
         String[] columns = {"Name", "URL", "Username", "Select", "Edit", "Delete"};
@@ -34,7 +37,7 @@ public class ServerUI {
         };
 
         JTable table = configureTable(model);
-        populateTable(model, table, runAddLead, runIronmongeryImport, runGlassImport, runUploadImages);
+        populateTable(model, table, runAddLead, runIronmongeryImport, runGlassImport, runUploadImages, runUpdateDefaults);
 
         JPanel contentPanel = new JPanel(new BorderLayout());
         contentPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
@@ -106,8 +109,11 @@ public class ServerUI {
     }
 
     private void populateTable(DefaultTableModel model, JTable table, 
-            boolean runAddLead, boolean runIronmongeryImport, 
-            boolean runGlassImport, boolean runUploadImages) {
+            boolean runAddLead, 
+            boolean runIronmongeryImport, 
+            boolean runGlassImport, 
+            boolean runUploadImages,
+            boolean runUpdateDefaults) {
         List<ServerManager.Server> servers = serverManager.getServers();
 
         for (ServerManager.Server s : servers) {
@@ -115,12 +121,15 @@ public class ServerUI {
         }
         model.addRow(new Object[]{"", "", "", "", "Add", ""});
 
-        addActionButtons(table, servers, runAddLead, runIronmongeryImport, runGlassImport, runUploadImages);
+        addActionButtons(table, servers, runAddLead, runIronmongeryImport, runGlassImport, runUploadImages, runUpdateDefaults);
     }
 
     private void addActionButtons(JTable table, List<ServerManager.Server> servers,
-                   boolean runAddLead, boolean runIronmongeryImport, 
-                   boolean runGlassImport, boolean runUploadImages) {
+                   boolean runAddLead, 
+                   boolean runIronmongeryImport, 
+                   boolean runGlassImport, 
+                   boolean runUploadImages,
+                   boolean runUpdateDefaults) {
         addButtonColumn(table, 3, "Select", row -> {
             if (row >= servers.size()) return;
             frame.dispose();
@@ -130,14 +139,15 @@ public class ServerUI {
                     runAddLead, 
                     runIronmongeryImport,
                     runGlassImport,
-                    runUploadImages
+                    runUploadImages,
+                    runUpdateDefaults
                 )
             ).start();
         }, servers.size());
 
         addButtonColumn(table, 4, "Edit", row -> {
             ServerManager.Server existing = row < servers.size() ? servers.get(row) : null;
-            showEditDialog(existing, row, runAddLead, runIronmongeryImport, runGlassImport, runUploadImages);
+            showEditDialog(existing, row, runAddLead, runIronmongeryImport, runGlassImport, runUploadImages, runUpdateDefaults);
         }, -1);
 
         addButtonColumn(table, 5, "Delete", row -> {
@@ -151,7 +161,7 @@ public class ServerUI {
             if (confirm == 0) {
                 serverManager.removeServer(row);
                 frame.dispose();
-                showServerTable(runAddLead, runIronmongeryImport, runGlassImport, runUploadImages);
+                showServerTable(runAddLead, runIronmongeryImport, runGlassImport, runUploadImages, runUpdateDefaults);
             }
         }, servers.size());
     }
@@ -197,7 +207,7 @@ public class ServerUI {
 
     private void showEditDialog(ServerManager.Server server, int rowIndex,
             boolean runAddLead, boolean runIronmongeryImport, 
-            boolean runGlassImport, boolean runUploadImages) {
+            boolean runGlassImport, boolean runUploadImages, boolean runUpdateDefaults) {
         JDialog dialog = AutomationUI.createStyledDialog(
             server == null ? "Add New Server" : "Edit Server", 
             400, 
@@ -273,7 +283,7 @@ public class ServerUI {
                 );
                 dialog.dispose();
                 frame.dispose();
-                showServerTable(runAddLead, runIronmongeryImport, runGlassImport, runUploadImages);
+                showServerTable(runAddLead, runIronmongeryImport, runGlassImport, runUploadImages, runUpdateDefaults);
             } else {
                 AutomationUI.showMessageDialog(
                     dialog, 

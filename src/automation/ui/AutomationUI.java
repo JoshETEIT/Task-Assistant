@@ -2,11 +2,16 @@ package automation.ui;
 
 import javax.swing.*;
 
+import org.openqa.selenium.WebElement;
+
 import automation.TestSuite;
 
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class AutomationUI {
     // Theme constants
@@ -381,6 +386,234 @@ public class AutomationUI {
         Object result = dialog.getRootPane().getClientProperty("option");
         return result != null ? (int) result : JOptionPane.CLOSED_OPTION;
     }
+    
+    public static int[] showMultiOptionDialog(Component parent, String message, String title, List<WebElement> headers) {
+        // Organize headers into hierarchy
+        List<String> headerTitles = new ArrayList<String>();
+        List<Boolean> isGroupHeader = new ArrayList<Boolean>();
+        List<Integer> groupIds = new ArrayList<Integer>();
+        int currentGroup = -1;
+        
+        for (WebElement header : headers) {
+            String text = header.getText().trim();
+            
+            // Skip empty headers and the Drawing Template header
+            if (text.isEmpty() || text.equals("Drawing Template")) {
+                continue;
+            }
+            
+            // Skip organization management text (contains "Main organisation")
+            if (text.contains("Main organisation")) {
+                continue;
+            }
+            
+            // Check if this is a group header (ends with "Templates" and is header2)
+            boolean isGroup = text.endsWith("Templates") && 
+                             "header2".equals(header.getAttribute("class"));
+            
+            if (isGroup) {
+                currentGroup++;
+            }
+            
+            headerTitles.add(text);
+            isGroupHeader.add(isGroup);
+            groupIds.add(isGroup ? -1 : currentGroup);
+        }
+
+        // Create dialog
+        JDialog dialog = createStyledDialog(title, 550, 450);
+        JPanel content = (JPanel)((JPanel)dialog.getContentPane()).getComponent(1);
+        content.setLayout(new BorderLayout());
+        
+        content.add(createLabel(message), BorderLayout.NORTH);
+
+        // Create the list with custom renderer
+        JList<String> optionList = new JList<String>(headerTitles.toArray(new String[0])) {
+            private int anchorIndex = -1;
+            
+            private void handleGroupHeaderClick(int groupIndex) {
+                // Find all items in this group
+                int start = groupIndex + 1;
+                int end = start;
+                while (end < getModel().getSize() && !isGroupHeader.get(end)) {
+                    end++;
+                }
+                end--; // end is now last item in group
+                
+                if (start > end) return; // empty group
+                
+                // Check if ALL items in group are currently selected
+                boolean allSelected = true;
+                for (int i = start; i <= end; i++) {
+                    if (!isSelectedIndex(i)) {
+                        allSelected = false;
+                        break;
+                    }
+                }
+                
+                if (allSelected) {
+                    // Deselect all items in group
+                    removeSelectionInterval(start, end);
+                } else {
+                    // Select all items in group
+                    addSelectionInterval(start, end);
+                }
+            }
+            
+            @Override
+            protected void processMouseEvent(MouseEvent e) {
+                if (SwingUtilities.isLeftMouseButton(e)) {
+                    int index = locationToIndex(e.getPoint());
+                    if (index >= 0) {
+                        if (isGroupHeader.get(index)) {
+                            // Group header clicked - select all in group
+                        	handleGroupHeaderClick(index);
+                            anchorIndex = index;
+                        } 
+                        else if (e.isShiftDown() && anchorIndex != -1) {
+                            // SHIFT+Click - range selection within same group
+                            selectRangeInGroup(anchorIndex, index);
+                        }
+                        else {
+                            // Normal click - toggle selection
+                            if (isSelectedIndex(index)) {
+                                removeSelectionInterval(index, index);
+                            } else {
+                                addSelectionInterval(index, index);
+                            }
+                            anchorIndex = index;
+                        }
+                    }
+                    return;
+                }
+                super.processMouseEvent(e);
+            }
+            
+            private void selectGroup(int groupIndex) {
+                // Find the start of the group (after the group header)
+                int start = groupIndex + 1;
+                
+                // Find the end of the group (next group header or end of list)
+                int end = start;
+                while (end < getModel().getSize() && !isGroupHeader.get(end)) {
+                    end++;
+                }
+                end--; // Move back to last item in group
+                
+                // Select all items in this range
+                if (start <= end) {
+                    addSelectionInterval(start, end);
+                }
+            }
+            
+            private void selectRangeInGroup(int from, int to) {
+                int groupId = groupIds.get(from);
+                int start = Math.min(from, to);
+                int end = Math.max(from, to);
+                
+                // Verify all in same group
+                for (int i = start; i <= end; i++) {
+                    if (groupIds.get(i) != groupId) {
+                        return; // Abort if different group
+                    }
+                }
+                
+                // Select the range
+                for (int i = start; i <= end; i++) {
+                    addSelectionInterval(i, i);
+                }
+            }
+        };
+        
+        // Visual styling
+        optionList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+        optionList.setFont(BODY_FONT);
+        optionList.setBackground(new Color(70, 90, 90));
+        optionList.setForeground(TEXT_COLOR);
+        optionList.setSelectionBackground(PRIMARY_COLOR);
+        optionList.setSelectionForeground(Color.WHITE);
+        optionList.setFixedCellHeight(30);
+        
+        // Hierarchical renderer
+        optionList.setCellRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, 
+                    int index, boolean isSelected, boolean cellHasFocus) {
+                JLabel label = (JLabel) super.getListCellRendererComponent(
+                    list, value, index, isSelected, cellHasFocus);
+                
+                if (isGroupHeader.get(index)) {
+                    label.setFont(new Font("Segoe UI", Font.BOLD, 14));
+                    label.setForeground(new Color(180, 180, 180));
+                    label.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+                } else {
+                    label.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+                    label.setBorder(BorderFactory.createEmptyBorder(2, 25, 2, 5));
+                }
+                
+                if (isSelected) {
+                    label.setBackground(PRIMARY_COLOR);
+                    label.setForeground(Color.WHITE);
+                    label.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createMatteBorder(0, 3, 0, 0, PRIMARY_COLOR.brighter()),
+                        isGroupHeader.get(index) ? 
+                            BorderFactory.createEmptyBorder(5, 5, 5, 5) :
+                            BorderFactory.createEmptyBorder(2, 25, 2, 5)
+                    ));
+                }
+                return label;
+            }
+        });
+        
+        JScrollPane scrollPane = new JScrollPane(optionList);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        scrollPane.setOpaque(false);
+        scrollPane.getViewport().setOpaque(false);
+        content.add(scrollPane, BorderLayout.CENTER);
+        
+        // Instructions
+        JLabel instructions = createLabel(
+            "<html>• Click items to toggle selection<br>" +
+            "• Click group names to select all in group<br>" +
+            "• Shift+Click for range selection within group</html>");
+        instructions.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        instructions.setForeground(new Color(180, 180, 180));
+        content.add(instructions, BorderLayout.SOUTH);
+        
+        final int[][] result = { null };
+        
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setOpaque(false);
+        buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
+        
+        JButton okButton = createButton("OK");
+        okButton.addActionListener(e -> {
+            result[0] = optionList.getSelectedIndices();
+            dialog.dispose();
+        });
+        
+        JButton cancelButton = createButton("Cancel");
+        cancelButton.setBackground(new Color(100, 100, 100));
+        cancelButton.addActionListener(e -> {
+            result[0] = new int[0];
+            dialog.dispose();
+        });
+        
+        buttonPanel.add(okButton);
+        buttonPanel.add(Box.createHorizontalStrut(10));
+        buttonPanel.add(cancelButton);
+        content.add(buttonPanel, BorderLayout.SOUTH);
+        
+        dialog.setModal(true);
+        dialog.setVisible(true);
+        
+        // Return only indices of selectable items (non-group headers)
+        return result[0] != null ? 
+                Arrays.stream(result[0])
+                    .filter(idx -> !isGroupHeader.get(idx))
+                    .toArray() 
+                : new int[0];
+        }
     
     @SuppressWarnings("serial")
 	public static String showFileChooser(Component parent, String title) {
