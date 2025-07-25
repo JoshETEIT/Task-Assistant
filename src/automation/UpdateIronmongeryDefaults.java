@@ -5,10 +5,10 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import automation.ui.AutomationUI;
-import javax.swing.*;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class UpdateIronmongeryDefaults {
 
@@ -47,52 +47,37 @@ public class UpdateIronmongeryDefaults {
             // 6. Final wait to confirm we're on the right page
             wait.until(ExpectedConditions.urlContains("DrawingTemplate"));
 
-         // Collect all header elements
-         List<WebElement> headers = driver.findElements(By.cssSelector("div.header2, div.header3"));
+            // Collect all header elements
+            List<WebElement> headers = driver.findElements(By.cssSelector("div.header2, div.header3"));
 
-         // Show dialog with the WebElements
-         int[] selectedIndices = AutomationUI.showMultiOptionDialog(
-             null,
-             "Select templates to update:",
-             "Template Selection",
-             headers
-         );
+            // Show dialog and get selections
+            int[] selectedIndices = AutomationUI.showMultiOptionDialog(
+                null,
+                "Select templates to update:",
+                "Template Selection",
+                headers
+            );
 
-         if (selectedIndices == null || selectedIndices.length == 0) {
-             System.out.println("No templates selected. Operation cancelled.");
-             return false;
-         }
+            if (selectedIndices == null || selectedIndices.length == 0) {
+                System.out.println("No templates selected. Operation cancelled.");
+                return false;
+            }
 
-         // Create filtered list of headers (including group headers for reference)
-         List<WebElement> filteredHeaders = new ArrayList<WebElement>();
-         List<String> filteredTitles = new ArrayList<String>();
-         List<Boolean> isGroup = new ArrayList<Boolean>();
+            // Create filtered list of selectable headers
+            List<WebElement> filteredHeaders = new ArrayList<>();
+            List<String> filteredTitles = new ArrayList<>();
+            for (WebElement header : headers) {
+                String text = header.getText().trim();
+                if (!text.isEmpty() && !text.equals("Drawing Template") && !text.contains("Main organisation")) {
+                    filteredHeaders.add(header);
+                    filteredTitles.add(text);
+                }
+            }
 
-         for (WebElement header : headers) {
-             String text = header.getText().trim();
-             if (text.isEmpty() || text.equals("Drawing Template") || text.contains("Main organisation")) {
-                 continue;
-             }
-             filteredHeaders.add(header);
-             filteredTitles.add(text);
-             isGroup.add(text.endsWith("Templates") && "header2".equals(header.getAttribute("class")));
-         }
+            // Process selected templates
+            processSelectedTemplates(selectedIndices, filteredHeaders, driver);
 
-         // Process selected templates
-         for (int index : selectedIndices) {
-             String headerTitle = filteredTitles.get(index);
-             System.out.println("Processing template: " + headerTitle);
-             
-             WebElement currentHeader = filteredHeaders.get(index);
-             List<WebElement> templateLinks = currentHeader.findElements(
-                 By.xpath("./following-sibling::a[contains(@href,'/Template/')]"));
-             
-             for (WebElement link : templateLinks) {
-                 processTemplate(link);
-             }
-         }
-            
-            System.out.println("Successfully updated selected templates");
+            System.out.println("Finished processing all selected templates");
             return true;
 
         } catch (Exception e) {
@@ -102,71 +87,156 @@ public class UpdateIronmongeryDefaults {
         }
     }
     
-    private void processTemplate(WebElement templateLink) {
-        try {
-            // Scroll to the template link
-            ((JavascriptExecutor) driver).executeScript(
-                "arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", 
-                templateLink);
+    private void processSelectedTemplates(int[] selectedIndices, List<WebElement> filteredHeaders, WebDriver driver) {
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+        String currentUrl = driver.getCurrentUrl();
+
+        for (int index : selectedIndices) {
+            WebElement currentHeader = filteredHeaders.get(index);
+            String headerText = currentHeader.getText();
             
-            // Click the template link
-            templateLink.click();
-            
-            // Wait for template page to load
-            wait.until(ExpectedConditions.presenceOfElementLocated(
-                By.cssSelector("div.template_settings")));
-            
-            // Update ironmongery defaults for this template
-            updateTemplateDefaults();
-            
-            // Go back to templates list
-            driver.navigate().back();
-            wait.until(ExpectedConditions.urlContains("DrawingTemplate"));
-            
-        } catch (Exception e) {
-            System.out.println("Error processing template: " + e.getMessage());
+            try {
+                js.executeScript("arguments[0].scrollIntoView({block: 'center'});", currentHeader);
+                Thread.sleep(500);
+                
+                List<WebElement> allFollowingElements = driver.findElements(
+                    By.xpath("//*[preceding-sibling::*[.='" + headerText + "']]"));
+                
+                int validTemplateCount = 0;
+                List<WebElement> validTemplates = new ArrayList<>();
+                
+                for (WebElement element : allFollowingElements) {
+                    if (element.getAttribute("class") != null && 
+                        element.getAttribute("class").contains("header")) {
+                        break;
+                    }
+                    
+                    try {
+                        element.findElement(By.xpath("./div[contains(@class, 'drawing_deleted')]"));
+                    } catch (NoSuchElementException e) {
+                        validTemplates.add(element);
+                        validTemplateCount++;
+                    }
+                }
+                
+                System.out.println("\nProcessing " + validTemplateCount + " active templates under: " + headerText);
+                
+                for (WebElement templateLink : validTemplates) {
+                    try {
+                        js.executeScript(
+                            "arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});" +
+                            "arguments[0].style.border='2px solid red';", 
+                            templateLink);
+                        Thread.sleep(500);
+                        
+                        js.executeScript("arguments[0].click();", templateLink);
+                        
+                        wait.until(ExpectedConditions.not(ExpectedConditions.urlToBe(currentUrl)));
+                        System.out.println("Processing template: " + driver.getCurrentUrl());
+                        
+                        processTemplate(driver);
+                        
+                        driver.navigate().back();
+                        wait.until(ExpectedConditions.urlToBe(currentUrl));
+                        Thread.sleep(1000);
+                        
+                    } catch (Exception e) {
+                        System.out.println("Error processing template: " + e.getMessage());
+                        if (!driver.getCurrentUrl().equals(currentUrl)) {
+                            driver.navigate().back();
+                            wait.until(ExpectedConditions.urlToBe(currentUrl));
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                System.out.println("Error processing header '" + headerText + "': " + e.getMessage());
+            }
         }
     }
     
-    private void updateTemplateDefaults() {
+    private void processTemplate(WebDriver driver) {
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+        String currentUrl = driver.getCurrentUrl();
+
         try {
-            // 1. Find and click the ironmongery defaults button
-            WebElement ironmongeryButton = wait.until(ExpectedConditions.elementToBeClickable(
-                By.xpath("//button[contains(text(),'Ironmongery Defaults')]")));
-            ironmongeryButton.click();
+            // 1. Click Finish & Ironmongery node
+            WebElement ironmongeryNode = wait.until(ExpectedConditions.elementToBeClickable(
+                By.xpath("//span[@class='tree-text' and contains(text(),'Finish & Ironmongery')]")));
+            js.executeScript("arguments[0].style.border='2px solid yellow';", ironmongeryNode);
+            js.executeScript("arguments[0].click();", ironmongeryNode);
+            System.out.println("Clicked Finish & Ironmongery node");
+
+            // 2. Wait for the property editor to load
+            wait.until(ExpectedConditions.presenceOfElementLocated(
+                By.cssSelector("div.property-list table.property-table")));
+
+            // 3. Find and click the Ironmongery window icon
+            WebElement ironmongeryRow = wait.until(ExpectedConditions.presenceOfElementLocated(
+                By.xpath("//tr[.//td[contains(@class, 'main_ironmongery')]]")));
+            WebElement windowIcon = ironmongeryRow.findElement(
+                By.cssSelector("img.property-icon-more[title*='Opens dialog window']"));
             
-            // 2. Wait for the modal dialog to appear
+            js.executeScript("arguments[0].style.border='2px solid orange';", windowIcon);
+            js.executeScript("arguments[0].scrollIntoView({block: 'center'});", windowIcon);
+            Thread.sleep(500);
+            js.executeScript("arguments[0].click();", windowIcon);
+            System.out.println("Clicked Ironmongery window icon");
+
+            // 4. Process the dialog
             WebElement modal = wait.until(ExpectedConditions.visibilityOfElementLocated(
                 By.cssSelector("div.ui-dialog")));
+                
+            // Click Default button
+            WebElement defaultButton = modal.findElement(
+                By.xpath(".//button[@name='default_button' and contains(@class, 'side_button')]"));
+            js.executeScript("arguments[0].style.border='2px solid green';", defaultButton);
+            js.executeScript("arguments[0].scrollIntoView({block: 'center'});", defaultButton);
+            Thread.sleep(500);
+            defaultButton.click();
+            System.out.println("Clicked Default button");
             
-            // 3. Update all dropdowns in the modal
-            List<WebElement> dropdowns = modal.findElements(By.tagName("select"));
-            for (WebElement dropdown : dropdowns) {
-                Select select = new Select(dropdown);
-                if (select.getOptions().size() > 0) {
-                    // Select the first non-empty option
-                    select.selectByIndex(1); // Skip the first empty option if exists
+            // Wait for cursor to move to a text field
+            wait.until(d -> {
+                try {
+                    WebElement activeElement = driver.switchTo().activeElement();
+                    return "input".equals(activeElement.getTagName()) && 
+                           "text".equals(activeElement.getAttribute("type"));
+                } catch (Exception e) {
+                    return false;
                 }
-            }
+            });
+            System.out.println("Detected cursor moved to text field - default action complete");
             
-            // 4. Click the save button
-            WebElement saveButton = modal.findElement(
-                By.xpath(".//button[contains(text(),'Save')]"));
+            // Click OK button (without scrolling)
+            WebElement okButton = modal.findElement(
+                By.xpath(".//button[@name='ok_button' and contains(@class, 'side_button')]"));
+            js.executeScript("arguments[0].style.border='2px solid blue';", okButton);
+            okButton.click();
+            System.out.println("Clicked OK button");
+            
+            // Wait 1 second after clicking OK
+            Thread.sleep(1000);
+            
+            // Find and click the Save button
+            WebElement saveButton = wait.until(ExpectedConditions.elementToBeClickable(
+                By.xpath(".//button[contains(@class,'drawing-board-button') and contains(.,'Save Drawing')]")));
+            
+            js.executeScript("arguments[0].style.border='2px solid orange';", saveButton);
             saveButton.click();
+            System.out.println("Clicked Save button");
             
-            // 5. Wait for the modal to close
-            wait.until(ExpectedConditions.invisibilityOf(modal));
+            // Wait until Save button becomes disabled (greyed out)
+            wait.until(ExpectedConditions.not(ExpectedConditions.elementToBeClickable(saveButton)));
+            System.out.println("Save button disabled - save operation complete");
             
-            System.out.println("Updated ironmongery defaults for template");
+            // Additional wait for safety
+            Thread.sleep(1000);
             
         } catch (Exception e) {
-            System.out.println("Error updating template defaults: " + e.getMessage());
-            // Try to close the modal if it's still open
-            try {
-                driver.findElement(By.cssSelector("div.ui-dialog-titlebar-close")).click();
-            } catch (Exception ex) {
-                // Ignore if we can't close it
-            }
+            System.out.println("Error updating template: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 }
