@@ -88,69 +88,51 @@ public class UpdateIronmongeryDefaults {
     }
     
     private void processSelectedTemplates(int[] selectedIndices, List<WebElement> filteredHeaders, WebDriver driver) {
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(15));
         JavascriptExecutor js = (JavascriptExecutor) driver;
         String currentUrl = driver.getCurrentUrl();
 
         for (int index : selectedIndices) {
-            WebElement currentHeader = filteredHeaders.get(index);
-            String headerText = currentHeader.getText();
+            if (index >= filteredHeaders.size()) continue;
+            
+            WebElement header = filteredHeaders.get(index);
+            String headerText = header.getText().trim();
             
             try {
-                js.executeScript("arguments[0].scrollIntoView({block: 'center'});", currentHeader);
-                Thread.sleep(500);
+                js.executeScript("arguments[0].scrollIntoView({block:'center'});", header);
                 
-                List<WebElement> allFollowingElements = driver.findElements(
-                    By.xpath("//*[preceding-sibling::*[.='" + headerText + "']]"));
+                String xpath = String.format(
+                    ".//a[starts-with(@href,'/SurveySystem/DrawingBoard/Template/')]" +
+                    "[preceding-sibling::div[@class='header3'][1][normalize-space()='%s']]" +
+                    "[not(./div[contains(@class,'drawing_deleted')])]",
+                    headerText.replace("'", "\\'"));
                 
-                int validTemplateCount = 0;
-                List<WebElement> validTemplates = new ArrayList<>();
+                List<WebElement> templates = wait.until(ExpectedConditions
+                    .presenceOfAllElementsLocatedBy(By.xpath(xpath)));
                 
-                for (WebElement element : allFollowingElements) {
-                    if (element.getAttribute("class") != null && 
-                        element.getAttribute("class").contains("header")) {
-                        break;
-                    }
-                    
-                    try {
-                        element.findElement(By.xpath("./div[contains(@class, 'drawing_deleted')]"));
-                    } catch (NoSuchElementException e) {
-                        validTemplates.add(element);
-                        validTemplateCount++;
-                    }
-                }
+                System.out.println("\nProcessing " + templates.size() + " templates under: " + headerText);
                 
-                System.out.println("\nProcessing " + validTemplateCount + " active templates under: " + headerText);
-                
-                for (WebElement templateLink : validTemplates) {
+                for (WebElement template : templates) {
                     try {
                         js.executeScript(
-                            "arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});" +
-                            "arguments[0].style.border='2px solid red';", 
-                            templateLink);
-                        Thread.sleep(500);
-                        
-                        js.executeScript("arguments[0].click();", templateLink);
+                            "arguments[0].scrollIntoView({block:'center'});" +
+                            "arguments[0].click();", 
+                            template);
                         
                         wait.until(ExpectedConditions.not(ExpectedConditions.urlToBe(currentUrl)));
-                        System.out.println("Processing template: " + driver.getCurrentUrl());
+                        System.out.println("Processing: " + driver.getCurrentUrl());
                         
                         processTemplate(driver);
-                        
                         driver.navigate().back();
                         wait.until(ExpectedConditions.urlToBe(currentUrl));
-                        Thread.sleep(1000);
                         
                     } catch (Exception e) {
-                        System.out.println("Error processing template: " + e.getMessage());
-                        if (!driver.getCurrentUrl().equals(currentUrl)) {
-                            driver.navigate().back();
-                            wait.until(ExpectedConditions.urlToBe(currentUrl));
-                        }
+                        System.out.println("Skipping template: " + e.getMessage());
+                        if (!driver.getCurrentUrl().equals(currentUrl)) driver.navigate().back();
                     }
                 }
             } catch (Exception e) {
-                System.out.println("Error processing header '" + headerText + "': " + e.getMessage());
+                System.out.println("Error with header '" + headerText + "': " + e.getMessage());
             }
         }
     }
