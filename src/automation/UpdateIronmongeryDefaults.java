@@ -2,13 +2,11 @@ package automation;
 
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import automation.ui.AutomationUI;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class UpdateIronmongeryDefaults {
 
@@ -140,7 +138,6 @@ public class UpdateIronmongeryDefaults {
     private void processTemplate(WebDriver driver) {
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
         JavascriptExecutor js = (JavascriptExecutor) driver;
-        String currentUrl = driver.getCurrentUrl();
 
         try {
             // 1. Click Finish & Ironmongery node
