@@ -10,7 +10,6 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import javax.swing.*;
-
 import java.io.File;
 import java.time.Duration;
 
@@ -25,12 +24,12 @@ public class TestSuite {
     public static void startApplication() {
         SwingUtilities.invokeLater(() -> {
             String[] options = {
-            		"Add Lead", 
-            	    "Import Ironmongery", 
-            	    "Import Glass Parts",
-            	    "Upload Part Images",
-            	    "Update Ironmongery Defaults",
-            	    "Exit"
+                "Add Lead", 
+                "Import Ironmongery", 
+                "Import Glass Parts",
+                "Upload Part Images",
+                "Update Ironmongery Defaults",
+                "Exit"
             };
             
             int choice = AutomationUI.showOptionDialog(
@@ -67,21 +66,31 @@ public class TestSuite {
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
         
         progressUI.showProgress("Automation Progress", "Initializing...");
-        progressUI.updateProgress(10, 0, "Launching browser");
+        progressUI.updateStatus("Launching browser");
 
         try {
             driver.get(s.getUrl());
             driver.manage().window().maximize();
-            progressUI.updateProgress(20, 0, "Navigating to login page");
+            progressUI.updateStatus("Navigating to login page");
 
             wait.until(ExpectedConditions.elementToBeClickable(By.id("login_user_name"))).sendKeys(s.getUsername());
             wait.until(ExpectedConditions.elementToBeClickable(By.id("login_password"))).sendKeys(s.getPassword());
             wait.until(ExpectedConditions.elementToBeClickable(By.id("submit_button"))).click();
-            progressUI.updateProgress(70, 0, "Logged in. Running test...");
+            progressUI.updateStatus("Logged in. Running test...");
 
             if (runAddLead) {
+            	
+            	// === PROGRESS TRACKING ADDED ===
+                progressUI.setMainProgressMax(5);
+                progressUI.setStepProgressMax(100);
+                // ===============================
+                
                 for (int i = 0; i < 5; i++) {
-                    boolean success = AddNewLead.testFormSubmission(driver);
+                    progressUI.updateMainProgress(i);
+                    progressUI.updateStatus("Adding lead " + (i+1) + "/5");
+                    progressUI.updateStepProgress(0, "Starting new lead");
+                    
+                    boolean success = AddNewLead.testFormSubmission(driver, progressUI);  // PASS ProgressUI
                     System.out.println((success ? "✅" : "❌") + " Test result for " + s.getName());
                     driver.get(s.getUrl() + "/Home");
                 }
@@ -132,8 +141,6 @@ public class TestSuite {
                 );
 
                 if (folderPath == null) {
-                    progressUI.updateProgress(0, 0, "Operation cancelled");
-                    progressUI.close();
                     return;
                 }
 
@@ -157,18 +164,18 @@ public class TestSuite {
                 );
                 
                 if (partTypeChoice == JOptionPane.CLOSED_OPTION) {
-                    progressUI.close();
                     return;
                 }
 
-                progressUI.showProgress("Automation Progress", "Starting upload...");
-                progressUI.updateProgress(10, 0, "Preparing upload...");
+                // === PROGRESS TRACKING ADDED ===
+                progressUI.showProgress("Uploading Images", "Starting...");
+                // ===============================
                 
                 try {
                     if (partTypeChoice == 0) {
-                        new GlassPartImageUploader(driver).uploadImagesFromFolder(folderPath);
+                        new GlassPartImageUploader(driver, progressUI).uploadImagesFromFolder(folderPath);
                     } else {
-                        new IronmongeryPartImageUploader(driver).uploadImagesFromFolder(folderPath);
+                        new IronmongeryPartImageUploader(driver, progressUI).uploadImagesFromFolder(folderPath);
                     }
                 } catch (Exception e) {
                     AutomationUI.showMessageDialog(
@@ -177,18 +184,26 @@ public class TestSuite {
                         "Error", 
                         JOptionPane.ERROR_MESSAGE
                     );
-                } finally {
-                    new Thread(() -> {
-                        try {
-                            Thread.sleep(2000);
-                        } catch (InterruptedException ignored) {}
-                        progressUI.close();
-                    }).start();
                 }
             }
             else if (runUpdateDefaults) {
-                boolean success = new UpdateIronmongeryDefaults(driver).updateDefaults(s.getUrl());
-                System.out.println((success ? "✅" : "❌") + " Update ironmongery defaults result for " + s.getName());
+                progressUI.close();
+                
+                // === PROGRESS TRACKING ADDED ===
+                progressUI.showProgress("Updating Defaults", "Starting...");
+                // ===============================
+                
+                try {
+                    boolean success = new UpdateIronmongeryDefaults(driver, progressUI).updateDefaults(s.getUrl());
+                    System.out.println((success ? "✅" : "❌") + " Update ironmongery defaults result for " + s.getName());
+                } catch (Exception e) {
+                    AutomationUI.showMessageDialog(
+                        null, 
+                        "Update failed: " + e.getMessage(), 
+                        "Error", 
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                }
             }
 
         } catch (Exception e) {
@@ -200,6 +215,7 @@ public class TestSuite {
             );
         } finally {
             progressUI.close();
+            driver.quit();
             SwingUtilities.invokeLater(() -> TestSuite.startApplication());
         }
     }

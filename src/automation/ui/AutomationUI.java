@@ -429,7 +429,11 @@ public class AutomationUI {
 
         // Create the list with custom renderer
         JList<String> optionList = new JList<String>(headerTitles.toArray(new String[0])) {
-            private int anchorIndex = -1;
+            /**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+			private int anchorIndex = -1;
             
             private void handleGroupHeaderClick(int groupIndex) {
                 // Find all items in this group
@@ -489,23 +493,6 @@ public class AutomationUI {
                 super.processMouseEvent(e);
             }
             
-            private void selectGroup(int groupIndex) {
-                // Find the start of the group (after the group header)
-                int start = groupIndex + 1;
-                
-                // Find the end of the group (next group header or end of list)
-                int end = start;
-                while (end < getModel().getSize() && !isGroupHeader.get(end)) {
-                    end++;
-                }
-                end--; // Move back to last item in group
-                
-                // Select all items in this range
-                if (start <= end) {
-                    addSelectionInterval(start, end);
-                }
-            }
-            
             private void selectRangeInGroup(int from, int to) {
                 int groupId = groupIds.get(from);
                 int start = Math.min(from, to);
@@ -536,7 +523,12 @@ public class AutomationUI {
         
         // Hierarchical renderer
         optionList.setCellRenderer(new DefaultListCellRenderer() {
-            @Override
+            /**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+			@Override
             public Component getListCellRendererComponent(JList<?> list, Object value, 
                     int index, boolean isSelected, boolean cellHasFocus) {
                 JLabel label = (JLabel) super.getListCellRendererComponent(

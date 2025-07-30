@@ -2,7 +2,7 @@ package automation;
 
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
-
+import automation.ui.ProgressUI;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -13,8 +13,9 @@ public class GlassPartImageUploader extends BasePartImageUploader {
         "glass", "no", "to", "supply", "customer", "mm", "float", "toughened"
     );
 
-    public GlassPartImageUploader(WebDriver driver) {
-        super(driver, GLASS_EXCLUDED_WORDS);
+    // Updated constructor to include ProgressUI
+    public GlassPartImageUploader(WebDriver driver, ProgressUI progressUI) {
+        super(driver, GLASS_EXCLUDED_WORDS, progressUI);
     }
 
     @Override
@@ -26,7 +27,7 @@ public class GlassPartImageUploader extends BasePartImageUploader {
         
         wait.until(ExpectedConditions.urlContains("/PricingAndConfig/PartList"));
         
-        // Click Glass tab with better handling
+        // Click Glass tab
         try {
             WebElement glassTab = wait.until(ExpectedConditions.elementToBeClickable(
                 By.xpath("//a[contains(text(),'Glass')]")));

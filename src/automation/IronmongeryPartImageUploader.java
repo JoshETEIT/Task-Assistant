@@ -2,7 +2,7 @@ package automation;
 
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
-
+import automation.ui.ProgressUI;
 import java.util.List;
 import java.util.Set;
 
@@ -12,8 +12,9 @@ public class IronmongeryPartImageUploader extends BasePartImageUploader {
         "polished", "brass", "chrome", "fastener", "non", "locking"
     );
 
-    public IronmongeryPartImageUploader(WebDriver driver) {
-        super(driver, IRONMONGERY_EXCLUDED_WORDS);
+    // Updated constructor to include ProgressUI
+    public IronmongeryPartImageUploader(WebDriver driver, ProgressUI progressUI) {
+        super(driver, IRONMONGERY_EXCLUDED_WORDS, progressUI);
     }
 
     @Override
@@ -25,7 +26,7 @@ public class IronmongeryPartImageUploader extends BasePartImageUploader {
         
         wait.until(ExpectedConditions.urlContains("/PricingAndConfig/PartList"));
         
-        // Click Ironmongery tab with better handling
+        // Click Ironmongery tab
         try {
             WebElement ironmongeryTab = wait.until(ExpectedConditions.elementToBeClickable(
                 By.xpath("//a[contains(text(),'Ironmongery')]")));
@@ -47,18 +48,12 @@ public class IronmongeryPartImageUploader extends BasePartImageUploader {
 
     @Override
     protected boolean isMatch(String imageName, String partName) {
-        // Normalize both names by:
-        // 1. Converting to lowercase
-        // 2. Removing all spaces and special characters
-        // 3. Keeping ALL words (no exclusions)
-        
         String normalizedImageName = imageName.toLowerCase()
             .replaceAll("[^a-z0-9]", "");
         
         String normalizedPartName = partName.toLowerCase()
             .replaceAll("[^a-z0-9]", "");
         
-        // Exact match required
         return normalizedImageName.equals(normalizedPartName);
     }
 }

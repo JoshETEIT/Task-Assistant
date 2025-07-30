@@ -5,16 +5,19 @@ import org.openqa.selenium.support.ui.*;
 import java.io.File;
 import java.time.Duration;
 import java.util.*;
+import automation.ui.ProgressUI;  // IMPORT ADDED
 
 public abstract class BasePartImageUploader {
     protected final WebDriver driver;
     protected final WebDriverWait wait;
     protected final Set<String> excludedWords;
+    protected final ProgressUI progressUI;
 
-    public BasePartImageUploader(WebDriver driver, Set<String> excludedWords) {
+    public BasePartImageUploader(WebDriver driver, Set<String> excludedWords, ProgressUI progressUI) {
         this.driver = driver;
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(20));
         this.excludedWords = excludedWords;
+        this.progressUI = progressUI;
     }
 
     public void uploadImagesFromFolder(String imagesFolderPath) {
@@ -36,11 +39,25 @@ public abstract class BasePartImageUploader {
             navigateToPartList();
             List<WebElement> partRows = getPartRows();
             
+            // === PROGRESS TRACKING ADDED ===
+            int totalParts = partRows.size();
+            progressUI.setMainProgressMax(totalParts);
+            progressUI.setStepProgressMax(100);
+            progressUI.updateStatus("Processing " + totalParts + " parts");
+            // ===============================
+            
             int processedCount = 0;
             int skippedCount = 0;
             int failedCount = 0;
             
-            for (WebElement partRow : partRows) {
+            for (int i = 0; i < partRows.size(); i++) {
+                WebElement partRow = partRows.get(i);
+                
+                // === PROGRESS TRACKING ADDED ===
+                progressUI.updateMainProgress(i);
+                progressUI.updateStepProgress(0, "Starting part " + (i+1));
+                // ===============================
+                
                 try {
                     if (processPartRow(partRow, imageFiles)) {
                         processedCount++;
@@ -50,7 +67,14 @@ public abstract class BasePartImageUploader {
                 } catch (Exception e) {
                     System.out.println("❌ Failed to process part row: " + e.getMessage());
                     failedCount++;
+                    
+                    // === PROGRESS TRACKING ADDED ===
+                    progressUI.updateStepProgress(100, "❌ Failed");
+                    // ===============================
                 }
+                
+                // Small delay to allow UI updates
+                Thread.sleep(50);
             }
             
             System.out.println("\n=== Completed: " + processedCount + " parts processed ===");
@@ -59,6 +83,8 @@ public abstract class BasePartImageUploader {
         } catch (Exception e) {
             System.out.println("\n❌ Error: " + e.getMessage());
             e.printStackTrace();
+        } finally {
+            progressUI.close();
         }
     }
 
@@ -68,40 +94,73 @@ public abstract class BasePartImageUploader {
 
     protected boolean processPartRow(WebElement partRow, List<File> imageFiles) {
         try {
-            WebElement partNameCell = partRow.findElements(By.tagName("td")).get(2);
+            // === PROGRESS TRACKING ADDED ===
+            progressUI.updateStepProgress(10, "Checking existing image");
+            // ===============================
             
-            // Get only the direct text content, excluding button text
-            String partName = ((JavascriptExecutor)driver).executeScript(
-                "return arguments[0].childNodes[0].textContent.trim();", 
-                partNameCell
-            ).toString();
-            
-            String cleanPartName = cleanName(partName);
-            
-            // Check if part already has an image
             if (hasExistingImage(partRow)) {
-                System.out.println("ℹ️ Part '" + partName + "' already has an image - skipping");
-                clearHighlight(partRow); // No highlight for existing images
+                System.out.println("ℹ️ Part '" + getPartName(partRow) + "' already has an image - skipping");
+                clearHighlight(partRow);
+                
+                // === PROGRESS TRACKING ADDED ===
+                progressUI.updateStepProgress(100, "⏭️ Skipped");
+                // ===============================
+                
                 return false;
             }
+            
+            String partName = getPartName(partRow);
+            String cleanPartName = cleanName(partName);
+            
+            // === PROGRESS TRACKING ADDED ===
+            progressUI.updateStepProgress(30, "Matching image");
+            // ===============================
             
             Optional<File> matchingImage = findMatchingImage(cleanPartName, imageFiles);
             if (matchingImage.isEmpty()) {
                 System.out.println("ℹ️ No matching image found for part: " + partName);
-                highlightRow(partRow, "red"); // Red for no match
+                highlightRow(partRow, "red");
+                
+                // === PROGRESS TRACKING ADDED ===
+                progressUI.updateStepProgress(100, "⏭️ No match");
+                // ===============================
+                
                 return false;
             }
             
+            // === PROGRESS TRACKING ADDED ===
+            progressUI.updateStepProgress(60, "Uploading image");
+            // ===============================
+            
             uploadImage(partRow, matchingImage.get());
-            highlightRow(partRow, "green"); // Green for successful upload
+            highlightRow(partRow, "green");
+            
+            // === PROGRESS TRACKING ADDED ===
+            progressUI.updateStepProgress(100, "✅ Uploaded");
+            // ===============================
+            
             return true;
         } catch (Exception e) {
             System.out.println("❌ Error processing part row: " + e.getMessage());
-            highlightRow(partRow, "red"); // Red for errors
+            highlightRow(partRow, "red");
+            
+            // === PROGRESS TRACKING ADDED ===
+            progressUI.updateStepProgress(100, "❌ Failed");
+            // ===============================
+            
             return false;
         }
     }
     
+    // Helper method to get part name
+    private String getPartName(WebElement partRow) {
+        WebElement partNameCell = partRow.findElements(By.tagName("td")).get(2);
+        return ((JavascriptExecutor)driver).executeScript(
+            "return arguments[0].childNodes[0].textContent.trim();", 
+            partNameCell
+        ).toString();
+    }
+
     private List<File> listImageFilesRecursively(File folder) {
         List<File> result = new ArrayList<>();
         if (folder.isDirectory()) {
@@ -126,7 +185,6 @@ public abstract class BasePartImageUploader {
         try {
             WebElement imgElement = partRow.findElement(By.cssSelector("td.part_photo_dropdown_toggle img"));
             String src = imgElement.getDomProperty("src");
-            // Check if src contains a thumbnail URL pattern or isn't the default camera icon
             return !src.contains("camera.svg") && 
                    (src.contains("Thumbnail") || src.matches(".*\\.(jpg|jpeg|png)$"));
         } catch (Exception e) {
@@ -136,9 +194,9 @@ public abstract class BasePartImageUploader {
 
     protected String cleanName(String name) {
         return name.toLowerCase()
-            .replaceAll("\\d+\\.?\\d*mm", "") // Remove measurements
-            .replaceAll("[^a-z0-9]", " ")     // Replace special chars with space
-            .replaceAll("\\s+", " ")          // Collapse multiple spaces
+            .replaceAll("\\d+\\.?\\d*mm", "")
+            .replaceAll("[^a-z0-9]", " ")
+            .replaceAll("\\s+", " ")
             .trim();
     }
 
@@ -156,7 +214,6 @@ public abstract class BasePartImageUploader {
             }
         }
         
-        // If multiple matches, pick the one with the closest name length
         if (!potentialMatches.isEmpty()) {
             potentialMatches.sort((f1, f2) -> 
                 Integer.compare(
@@ -171,11 +228,9 @@ public abstract class BasePartImageUploader {
 
     protected void uploadImage(WebElement partRow, File imageFile) throws Exception {
         try {
-            // First attempt without extra scrolling
             attemptUpload(partRow, imageFile, false);
         } catch (StaleElementReferenceException | ElementNotInteractableException e) {
             System.out.println("⚠️ First attempt failed, retrying with scroll...");
-            // Second attempt with forced scroll
             attemptUpload(partRow, imageFile, true);
         }
     }
@@ -207,8 +262,7 @@ public abstract class BasePartImageUploader {
         fileInput.sendKeys(imageFile.getAbsolutePath());
         Thread.sleep(1000);
         
-        System.out.println("✅ Uploaded image for part: " + 
-            partRow.findElements(By.tagName("td")).get(2).getText().trim());
+        System.out.println("✅ Uploaded image for part: " + getPartName(partRow));
     }
     
     protected void highlightRow(WebElement row, String color) {

@@ -9,35 +9,49 @@ public class ProgressUI {
     private JLabel statusLabel;
 
     public void showProgress(String title, String initialMessage) {
-        // This will now automatically get all styling from AutomationUI
         progressDialog = AutomationUI.createStyledDialog(title, 400, 200);
         JPanel content = (JPanel)((JPanel)progressDialog.getContentPane()).getComponent(1);
         
-        // Add components - they'll inherit the correct styling
         statusLabel = AutomationUI.createLabel(initialMessage);
         content.add(statusLabel);
         
-        mainProgressBar = new JProgressBar();
+        mainProgressBar = new JProgressBar(0, 100);
+        mainProgressBar.setStringPainted(true);
         content.add(mainProgressBar);
         
-        stepProgressBar = new JProgressBar();
+        stepProgressBar = new JProgressBar(0, 100);
+        stepProgressBar.setStringPainted(true);
         content.add(stepProgressBar);
         
         progressDialog.setVisible(true);
     }
 
-    public void updateProgress(int mainValue, int stepValue, String message) {
-        if (mainProgressBar != null) {
-            mainProgressBar.setValue(mainValue);
-            mainProgressBar.setString(mainValue + "%");
-        }
-        if (stepProgressBar != null) {
-            stepProgressBar.setValue(stepValue);
-            stepProgressBar.setString(stepValue + "%");
-        }
-        if (statusLabel != null) {
-            statusLabel.setText(message);
-        }
+    public void setMainProgressMax(int max) {
+        mainProgressBar.setMaximum(max);
+    }
+
+    public void setStepProgressMax(int max) {
+        stepProgressBar.setMaximum(max);
+    }
+
+    public void updateMainProgress(int value) {
+        mainProgressBar.setValue(value);
+        mainProgressBar.setString(value + "/" + mainProgressBar.getMaximum());
+    }
+
+    public void updateStepProgress(int value, String message) {
+        stepProgressBar.setValue(value);
+        stepProgressBar.setString(message);
+    }
+
+    public void updateStatus(String message) {
+        statusLabel.setText(message);
+    }
+
+    public void updateDualProgress(int mainValue, int stepValue, String status) {
+        updateMainProgress(mainValue);
+        updateStepProgress(stepValue, status);
+        updateStatus(status);
     }
 
     public void close() {
