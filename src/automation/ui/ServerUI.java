@@ -2,6 +2,8 @@ package automation.ui;
 
 import automation.ServerManager;
 import automation.TestSuite;
+import automation.tasks.TaskRegistry;
+
 import javax.swing.*;
 import javax.swing.table.*;
 import java.awt.*;
@@ -10,34 +12,34 @@ import java.util.function.IntConsumer;
 
 public class ServerUI {
     private final ServerManager serverManager;
+    private final String selectedTask;
     private JFrame frame;
 
-    public ServerUI(ServerManager serverManager) {
+    public ServerUI(ServerManager serverManager, String selectedTask) {
         this.serverManager = serverManager;
+        this.selectedTask = selectedTask;
+        
+        // Verify the task exists (simple version without hasTask)
+        if (TaskRegistry.getTask(selectedTask) == null) {
+            throw new IllegalArgumentException("Invalid task: " + selectedTask);
+        }
     }
 
-    public void showServerTable(boolean runAddLead, 
-    						   boolean runIronmongeryImport, 
-                               boolean runGlassImport, 
-                               boolean runUploadImages,
-                               boolean runUpdateDefaults) {
+    public void showServerTable() {
         frame = AutomationUI.createMainFrame("Server Management", 900, 500);
         
         String[] columns = {"Name", "URL", "Username", "Select", "Edit", "Delete"};
         DefaultTableModel model = new DefaultTableModel(columns, 0) {
-            /**
-			 * 
-			 */
-			private static final long serialVersionUID = 1L;
-
-			@Override 
+            @Override 
             public boolean isCellEditable(int row, int column) {
                 return column >= 3;
             }
         };
 
         JTable table = configureTable(model);
-        populateTable(model, table, runAddLead, runIronmongeryImport, runGlassImport, runUploadImages, runUpdateDefaults);
+        
+        // Remove all boolean parameters from populateTable
+        populateTable(model, table);
 
         JPanel contentPanel = new JPanel(new BorderLayout());
         contentPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
@@ -54,6 +56,47 @@ public class ServerUI {
         frame.setVisible(true);
     }
 
+    private void populateTable(DefaultTableModel model, JTable table) {
+        List<ServerManager.Server> servers = serverManager.getServers();
+
+        for (ServerManager.Server s : servers) {
+            model.addRow(s.toRow());
+        }
+        model.addRow(new Object[]{"", "", "", "", "Add", ""});
+
+        addActionButtons(table, servers);
+    }
+
+    private void addActionButtons(JTable table, List<ServerManager.Server> servers) {
+        addButtonColumn(table, 3, "Select", row -> {
+            if (row >= servers.size()) return;
+            frame.dispose();
+            new Thread(() -> 
+                TestSuite.runSeleniumTest(servers.get(row), selectedTask)
+            ).start();
+        }, servers.size());
+
+        addButtonColumn(table, 4, "Edit", row -> {
+            ServerManager.Server existing = row < servers.size() ? servers.get(row) : null;
+            showEditDialog(existing, row);
+        }, -1);
+
+        addButtonColumn(table, 5, "Delete", row -> {
+            if (row >= servers.size()) return;
+            int confirm = AutomationUI.showOptionDialog(
+                frame, 
+                "Delete this server?", 
+                "Confirm Delete", 
+                new String[]{"Delete", "Cancel"}
+            );
+            if (confirm == 0) {
+                serverManager.removeServer(row);
+                frame.dispose();
+                showServerTable();
+            }
+        }, servers.size());
+    }
+    
     private JTable configureTable(DefaultTableModel model) {
         JTable table = new JTable(model);
         table.setOpaque(false);
@@ -106,67 +149,7 @@ public class ServerUI {
         }
         
         return table;
-    }
-
-    private void populateTable(DefaultTableModel model, JTable table, 
-            boolean runAddLead, 
-            boolean runIronmongeryImport, 
-            boolean runGlassImport, 
-            boolean runUploadImages,
-            boolean runUpdateDefaults) {
-        List<ServerManager.Server> servers = serverManager.getServers();
-
-        for (ServerManager.Server s : servers) {
-            model.addRow(s.toRow());
-        }
-        model.addRow(new Object[]{"", "", "", "", "Add", ""});
-
-        addActionButtons(table, servers, runAddLead, runIronmongeryImport, runGlassImport, runUploadImages, runUpdateDefaults);
-    }
-
-    private void addActionButtons(JTable table, List<ServerManager.Server> servers,
-                   boolean runAddLead, 
-                   boolean runIronmongeryImport, 
-                   boolean runGlassImport, 
-                   boolean runUploadImages,
-                   boolean runUpdateDefaults) {
-        addButtonColumn(table, 3, "Select", row -> {
-            if (row >= servers.size()) return;
-            frame.dispose();
-            new Thread(() -> 
-                TestSuite.runSeleniumTest(
-                    servers.get(row), 
-                    runAddLead, 
-                    runIronmongeryImport,
-                    runGlassImport,
-                    runUploadImages,
-                    runUpdateDefaults
-                )
-            ).start();
-        }, servers.size());
-
-        addButtonColumn(table, 4, "Edit", row -> {
-            ServerManager.Server existing = row < servers.size() ? servers.get(row) : null;
-            showEditDialog(existing, row, runAddLead, runIronmongeryImport, runGlassImport, runUploadImages, runUpdateDefaults);
-        }, -1);
-
-        addButtonColumn(table, 5, "Delete", row -> {
-            if (row >= servers.size()) return;
-            int confirm = AutomationUI.showOptionDialog(
-                frame, 
-                "Delete this server?", 
-                "Confirm Delete", 
-                new String[]{"Delete", "Cancel"}
-            );
-            if (confirm == 0) {
-                serverManager.removeServer(row);
-                frame.dispose();
-                showServerTable(runAddLead, runIronmongeryImport, runGlassImport, runUploadImages, runUpdateDefaults);
-            }
-        }, servers.size());
-    }
-
-    private void addButtonColumn(JTable table, int colIndex, String label,
+    }    private void addButtonColumn(JTable table, int colIndex, String label,
                                IntConsumer onClick, int disableRowIndex) {
         table.getColumnModel().getColumn(colIndex).setCellRenderer((tbl, val, sel, foc, row, col) -> {
             JButton btn = AutomationUI.createButton(label);
@@ -205,9 +188,8 @@ public class ServerUI {
         });
     }
 
-    private void showEditDialog(ServerManager.Server server, int rowIndex,
-            boolean runAddLead, boolean runIronmongeryImport, 
-            boolean runGlassImport, boolean runUploadImages, boolean runUpdateDefaults) {
+    // Updated edit dialog without boolean parameters
+    private void showEditDialog(ServerManager.Server server, int rowIndex) {
         JDialog dialog = AutomationUI.createStyledDialog(
             server == null ? "Add New Server" : "Edit Server", 
             400, 
@@ -283,7 +265,7 @@ public class ServerUI {
                 );
                 dialog.dispose();
                 frame.dispose();
-                showServerTable(runAddLead, runIronmongeryImport, runGlassImport, runUploadImages, runUpdateDefaults);
+                showServerTable(); // No more boolean parameters
             } else {
                 AutomationUI.showMessageDialog(
                     dialog, 
