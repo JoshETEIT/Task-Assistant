@@ -30,7 +30,9 @@ public class ServerUI {
         
         String[] columns = {"Name", "URL", "Username", "Select", "Edit", "Delete"};
         DefaultTableModel model = new DefaultTableModel(columns, 0) {
-            @Override 
+			private static final long serialVersionUID = 1L;
+
+			@Override 
             public boolean isCellEditable(int row, int column) {
                 return column >= 3;
             }

@@ -54,7 +54,6 @@ public class GlassPartImportTask implements AutomationTask {
         }
     }
 
-    // CSV Item definition
     private static class GlassPartItem {
         String partNo, partName, pUnit, cost, obscure;
 
@@ -70,7 +69,6 @@ public class GlassPartImportTask implements AutomationTask {
         public void setObscure(String obscure) { this.obscure = obscure; }
     }
 
-    // CSV Reading
     private ArrayList<GlassPartItem> readGlassPartCSV(String csvPath) throws Exception {
         ArrayList<GlassPartItem> itemList = new ArrayList<>();
         try (Scanner sc = new Scanner(new File(csvPath))) {
@@ -90,13 +88,16 @@ public class GlassPartImportTask implements AutomationTask {
         return itemList;
     }
 
-    // Import Logic
     private void performImport(ArrayList<GlassPartItem> items, WebDriver driver, 
                             String baseUrl, ProgressUI progressUI) {
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
         Actions actions = new Actions(driver);
         
         driver.get(baseUrl + "/PricingAndConfig/PartList/GL");
+        wait.until(ExpectedConditions.urlContains("/PricingAndConfig/PartList/GL"));
+        
+        // Wait for page to be fully loaded
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.id("add_part_button")));
         
         for (int i = 0; i < items.size(); i++) {
             GlassPartItem item = items.get(i);
@@ -104,26 +105,11 @@ public class GlassPartImportTask implements AutomationTask {
             progressUI.updateStepProgress(0, "Processing " + item.getPartNo());
             
             try {
-                // Scroll to top before each item
                 ((JavascriptExecutor)driver).executeScript("window.scrollTo(0, 0)");
                 
-                // Click Add Part button with retry logic
-                int attempts = 0;
-                while (attempts < 3) {
-                    try {
-                        WebElement addButton = wait.until(
-                            ExpectedConditions.elementToBeClickable(By.id("add_part_button")));
-                        ((JavascriptExecutor)driver).executeScript(
-                            "arguments[0].scrollIntoView(true);", addButton);
-                        addButton.click();
-                        break;
-                    } catch (Exception e) {
-                        attempts++;
-                        if (attempts == 3) throw e;
-                        Thread.sleep(1000);
-                    }
-                }
-
+                // Improved Add Part button click with JavaScript
+                clickAddPartButtonWithRetry(driver, wait);
+                
                 // Fill basic fields
                 enterTextById(wait, "part_no", item.getPartNo());
                 enterTextById(wait, "part_name", item.getPartName());
@@ -143,17 +129,18 @@ public class GlassPartImportTask implements AutomationTask {
                     selectCheckboxOrRadioButton(driver, "part_is_obscure_glass");
                 }
 
-                // Submit part
-                clickButtonById(driver, "part_dialog_submit_new");
+                // Submit part using JavaScript click
+                WebElement submitButton = wait.until(
+                    ExpectedConditions.presenceOfElementLocated(By.id("part_dialog_submit_new")));
+                ((JavascriptExecutor)driver).executeScript("arguments[0].click();", submitButton);
                 
-                // Wait for completion
+                // Wait for dialog to close
                 wait.until(ExpectedConditions.invisibilityOfElementLocated(
                     By.id("part_dialog_submit_new")));
                 
-                // Scroll to top using multiple methods
+                // Scroll to top using JavaScript
                 ((JavascriptExecutor)driver).executeScript("window.scrollTo(0, 0)");
                 actions.sendKeys(Keys.HOME).perform();
-                Thread.sleep(500);
                 
                 progressUI.updateStepProgress(100, "✅ Part added");
             } catch (Exception e) {
@@ -162,10 +149,43 @@ public class GlassPartImportTask implements AutomationTask {
                 
                 // Try to close any open dialogs
                 try {
-                    driver.findElement(By.cssSelector(".ui-dialog-titlebar-close")).click();
+                    WebElement closeButton = driver.findElement(By.cssSelector(".ui-dialog-titlebar-close"));
+                    ((JavascriptExecutor)driver).executeScript("arguments[0].click();", closeButton);
                 } catch (Exception ex) {
                     // Ignore if we can't close it
                 }
+            }
+        }
+    }
+    
+    private void clickAddPartButtonWithRetry(WebDriver driver, WebDriverWait wait) {
+        int attempts = 0;
+        while (attempts < 3) {
+            try {
+                // Find the button first
+                WebElement addButton = wait.until(
+                    ExpectedConditions.presenceOfElementLocated(By.id("add_part_button")));
+                
+                // Scroll into view centered
+                ((JavascriptExecutor)driver).executeScript(
+                    "arguments[0].scrollIntoView({behavior:'instant',block:'center'});", 
+                    addButton);
+                
+                // Click using JavaScript
+                ((JavascriptExecutor)driver).executeScript("arguments[0].click();", addButton);
+                
+                // Verify the click worked by waiting for the dialog to appear
+                wait.until(ExpectedConditions.presenceOfElementLocated(
+                    By.id("part_dialog_submit_new")));
+                return;
+            } catch (Exception e) {
+                attempts++;
+                if (attempts == 3) throw e;
+                
+                // If failed, try refreshing the page
+                ((JavascriptExecutor)driver).executeScript("window.scrollTo(0, 0)");
+                driver.navigate().refresh();
+                wait.until(ExpectedConditions.presenceOfElementLocated(By.id("add_part_button")));
             }
         }
     }

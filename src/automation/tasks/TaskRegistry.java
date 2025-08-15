@@ -14,6 +14,7 @@ public class TaskRegistry {
         register(new UploadGlassImagesTask());
         register(new UploadIronmongeryImagesTask());
         register(new UpdateIronmongeryDefaultsTask());
+        register(new PageLoadTimeTask());
     }
     
     public static void register(AutomationTask task) {

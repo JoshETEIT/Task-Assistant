@@ -1,6 +1,7 @@
 package automation;
 
 import automation.tasks.AutomationTask;
+import automation.tasks.PageLoadTimeTask;
 import automation.tasks.TaskRegistry;
 import automation.ui.AutomationUI;
 import automation.ui.ProgressUI;
@@ -73,6 +74,13 @@ public class TestSuite {
             AutomationTask task = TaskRegistry.getTask(taskName);
             if (task != null) {
                 task.execute(driver, server.getUrl(), progressUI);
+                
+                // Only auto-close for non-timer tasks
+                if (!(task instanceof PageLoadTimeTask)) {
+                    driver.quit();
+                    progressUI.close();
+                    SwingUtilities.invokeLater(TestSuite::startApplication);
+                }
             } else {
                 throw new IllegalArgumentException("Unknown task: " + taskName);
             }
@@ -84,12 +92,6 @@ public class TestSuite {
                 "Task Failed", 
                 JOptionPane.ERROR_MESSAGE
             );
-        } finally {
-            progressUI.close();
-            if (driver != null) {
-                driver.quit();
-            }
-            SwingUtilities.invokeLater(TestSuite::startApplication);
-        }
+        } 
     }
 }

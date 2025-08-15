@@ -2,7 +2,6 @@ package automation.tasks;
 
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
-import automation.ui.ProgressUI;
 import java.util.*;
 
 public class UploadGlassImagesTask extends BaseUploadImagesTask {

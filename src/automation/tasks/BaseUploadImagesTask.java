@@ -141,7 +141,7 @@ public abstract class BaseUploadImagesTask implements AutomationTask {
         try {
             WebElement img = partRow.findElement(
                 By.cssSelector("td.part_photo_dropdown_toggle img"));
-            String src = img.getAttribute("src");
+            String src = img.getDomAttribute("src");
             return !src.contains("camera.svg") && 
                   (src.contains("Thumbnail") || src.matches(".*\\.(jpg|jpeg|png)$"));
         } catch (Exception e) {

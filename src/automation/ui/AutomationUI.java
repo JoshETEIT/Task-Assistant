@@ -3,9 +3,7 @@ package automation.ui;
 import javax.swing.*;
 
 import org.openqa.selenium.WebElement;
-
 import automation.TestSuite;
-
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
@@ -35,13 +33,11 @@ public class AutomationUI {
         UIManager.put("ProgressBar.foreground", PRIMARY_COLOR);
     }
 
-    // Title bar factory with home button
     private static JPanel createTitleBar(String fullTitle, Window window) {
         JPanel titlePanel = new JPanel(new BorderLayout());
         titlePanel.setBackground(TITLE_BAR_COLOR);
         titlePanel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
         
-        // Add mouse listeners for dragging
         final Point[] offset = new Point[1];
         titlePanel.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent e) {
@@ -58,20 +54,15 @@ public class AutomationUI {
             }
         });
         
-        // Split title into parts if it contains " | "
         String[] titleParts = fullTitle.split(" \\| ", 2);
-        
-        // Create a panel for the title components
         JPanel titleContent = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         titleContent.setOpaque(false);
         
-        // First part (white)
         JLabel part1 = new JLabel(titleParts[0]);
         part1.setFont(TITLE_FONT);
         part1.setForeground(Color.WHITE);
         titleContent.add(part1);
         
-        // If there's a second part, add it with primary color
         if (titleParts.length > 1) {
             JLabel separator = new JLabel(" | ");
             separator.setFont(TITLE_FONT);
@@ -86,16 +77,13 @@ public class AutomationUI {
         
         titlePanel.add(titleContent, BorderLayout.CENTER);
         
-        // Create button panel for close and home buttons
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
         buttonPanel.setOpaque(false);
         
-        // Make buttons non-draggable
         MouseAdapter preventDrag = new MouseAdapter() {};
         buttonPanel.addMouseListener(preventDrag);
         buttonPanel.addMouseMotionListener(preventDrag);
         
-        // Only add home button if not the main dialog
         if (!fullTitle.contains("Select Action")) {
             JLabel homeLabel = new JLabel("⌂");
             homeLabel.setFont(new Font("Arial", Font.BOLD, 18));
@@ -117,7 +105,6 @@ public class AutomationUI {
             buttonPanel.add(homeLabel);
         }
         
-        // Close button
         JLabel closeLabel = new JLabel("×");
         closeLabel.setFont(new Font("Arial", Font.BOLD, 18));
         closeLabel.setForeground(TEXT_COLOR);
@@ -139,14 +126,12 @@ public class AutomationUI {
         return titlePanel;
     }
 
-    // Dialog creation with automatic styling
     @SuppressWarnings("serial")
-	public static JDialog createStyledDialog(String title, int width, int height) {
+    public static JDialog createStyledDialog(String title, int width, int height) {
         JDialog dialog = new JDialog();
         dialog.setUndecorated(true);
         dialog.setBackground(new Color(0, 0, 0, 0));
         
-        // Main container with translucent effect
         JPanel bgPanel = new JPanel(new BorderLayout()) {
             @Override
             protected void paintComponent(Graphics g) {
@@ -158,11 +143,8 @@ public class AutomationUI {
             }
         };
         bgPanel.setOpaque(false);
-        
-        // Add title bar (with home and close buttons)
         bgPanel.add(createTitleBar(title, dialog), BorderLayout.NORTH);
         
-        // Content panel with automatic styling
         JPanel contentPanel = new JPanel();
         contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
         contentPanel.setOpaque(false);
@@ -176,7 +158,6 @@ public class AutomationUI {
         return dialog;
     }
 
-    // Component factories with automatic styling
     public static JLabel createLabel(String text) {
         JLabel label = new JLabel(text);
         label.setFont(BODY_FONT);
@@ -260,7 +241,7 @@ public class AutomationUI {
     }
     
     @SuppressWarnings("serial")
-	public static JFrame createMainFrame(String title, int width, int height) {
+    public static JFrame createMainFrame(String title, int width, int height) {
         JFrame frame = new JFrame(title);
         frame.setUndecorated(true);
         frame.setBackground(new Color(0, 0, 0, 0));
@@ -287,7 +268,7 @@ public class AutomationUI {
     }
 
     @SuppressWarnings("serial")
-	public static String showDirectoryChooser(Component parent, String title) {
+    public static String showDirectoryChooser(Component parent, String title) {
         if (lastDirectory == null || !lastDirectory.exists() || !lastDirectory.canRead()) {
             lastDirectory = new File(System.getProperty("user.dir"));
         }
@@ -356,16 +337,25 @@ public class AutomationUI {
     }
 
     public static int showOptionDialog(Component parent, String message, String title, String[] options) {
-        JDialog dialog = createStyledDialog(title, 400, 200);
+        // Fixed width and MANUAL height setting
+        final int DIALOG_WIDTH = 400;
+        final int DIALOG_HEIGHT = 240; // <-- CHANGE THIS VALUE AS NEEDED
+        
+        JDialog dialog = createStyledDialog(title, DIALOG_WIDTH, DIALOG_HEIGHT);
         JPanel content = (JPanel)((JPanel)dialog.getContentPane()).getComponent(1);
         content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
         
+        // Add message
         JLabel messageLabel = createLabel(message);
         messageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         content.add(messageLabel);
+        content.add(Box.createVerticalStrut(10));
         
-        JPanel optionsPanel = new JPanel();
+        // Create panel with original flow layout
+        JPanel optionsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
         optionsPanel.setOpaque(false);
+        
+        // Add all buttons
         for (int i = 0; i < options.length; i++) {
             JButton button = createButton(options[i]);
             final int index = i;
@@ -374,12 +364,10 @@ public class AutomationUI {
                 dialog.getRootPane().putClientProperty("option", index);
             });
             optionsPanel.add(button);
-            if (i < options.length - 1) {
-                optionsPanel.add(Box.createHorizontalStrut(10));
-            }
         }
         
         content.add(optionsPanel);
+        dialog.setLocationRelativeTo(parent);
         dialog.setModal(true);
         dialog.setVisible(true);
         
@@ -388,7 +376,6 @@ public class AutomationUI {
     }
     
     public static int[] showMultiOptionDialog(Component parent, String message, String title, List<WebElement> headers) {
-        // Organize headers into hierarchy
         List<String> headerTitles = new ArrayList<String>();
         List<Boolean> isGroupHeader = new ArrayList<Boolean>();
         List<Integer> groupIds = new ArrayList<Integer>();
@@ -397,19 +384,16 @@ public class AutomationUI {
         for (WebElement header : headers) {
             String text = header.getText().trim();
             
-            // Skip empty headers and the Drawing Template header
             if (text.isEmpty() || text.equals("Drawing Template")) {
                 continue;
             }
             
-            // Skip organization management text (contains "Main organisation")
             if (text.contains("Main organisation")) {
                 continue;
             }
             
-            // Check if this is a group header (ends with "Templates" and is header2)
             boolean isGroup = text.endsWith("Templates") && 
-                             "header2".equals(header.getAttribute("class"));
+                             "header2".equals(header.getDomAttribute("class"));
             
             if (isGroup) {
                 currentGroup++;
@@ -420,33 +404,26 @@ public class AutomationUI {
             groupIds.add(isGroup ? -1 : currentGroup);
         }
 
-        // Create dialog
         JDialog dialog = createStyledDialog(title, 550, 450);
         JPanel content = (JPanel)((JPanel)dialog.getContentPane()).getComponent(1);
         content.setLayout(new BorderLayout());
         
         content.add(createLabel(message), BorderLayout.NORTH);
 
-        // Create the list with custom renderer
         JList<String> optionList = new JList<String>(headerTitles.toArray(new String[0])) {
-            /**
-			 * 
-			 */
-			private static final long serialVersionUID = 1L;
-			private int anchorIndex = -1;
+            private static final long serialVersionUID = 1L;
+            private int anchorIndex = -1;
             
             private void handleGroupHeaderClick(int groupIndex) {
-                // Find all items in this group
                 int start = groupIndex + 1;
                 int end = start;
                 while (end < getModel().getSize() && !isGroupHeader.get(end)) {
                     end++;
                 }
-                end--; // end is now last item in group
+                end--;
                 
-                if (start > end) return; // empty group
+                if (start > end) return;
                 
-                // Check if ALL items in group are currently selected
                 boolean allSelected = true;
                 for (int i = start; i <= end; i++) {
                     if (!isSelectedIndex(i)) {
@@ -456,10 +433,8 @@ public class AutomationUI {
                 }
                 
                 if (allSelected) {
-                    // Deselect all items in group
                     removeSelectionInterval(start, end);
                 } else {
-                    // Select all items in group
                     addSelectionInterval(start, end);
                 }
             }
@@ -470,16 +445,13 @@ public class AutomationUI {
                     int index = locationToIndex(e.getPoint());
                     if (index >= 0) {
                         if (isGroupHeader.get(index)) {
-                            // Group header clicked - select all in group
-                        	handleGroupHeaderClick(index);
+                            handleGroupHeaderClick(index);
                             anchorIndex = index;
                         } 
                         else if (e.isShiftDown() && anchorIndex != -1) {
-                            // SHIFT+Click - range selection within same group
                             selectRangeInGroup(anchorIndex, index);
                         }
                         else {
-                            // Normal click - toggle selection
                             if (isSelectedIndex(index)) {
                                 removeSelectionInterval(index, index);
                             } else {
@@ -498,21 +470,18 @@ public class AutomationUI {
                 int start = Math.min(from, to);
                 int end = Math.max(from, to);
                 
-                // Verify all in same group
                 for (int i = start; i <= end; i++) {
                     if (groupIds.get(i) != groupId) {
-                        return; // Abort if different group
+                        return;
                     }
                 }
                 
-                // Select the range
                 for (int i = start; i <= end; i++) {
                     addSelectionInterval(i, i);
                 }
             }
         };
         
-        // Visual styling
         optionList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         optionList.setFont(BODY_FONT);
         optionList.setBackground(new Color(70, 90, 90));
@@ -521,14 +490,10 @@ public class AutomationUI {
         optionList.setSelectionForeground(Color.WHITE);
         optionList.setFixedCellHeight(30);
         
-        // Hierarchical renderer
         optionList.setCellRenderer(new DefaultListCellRenderer() {
-            /**
-			 * 
-			 */
-			private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
-			@Override
+            @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, 
                     int index, boolean isSelected, boolean cellHasFocus) {
                 JLabel label = (JLabel) super.getListCellRendererComponent(
@@ -563,7 +528,6 @@ public class AutomationUI {
         scrollPane.getViewport().setOpaque(false);
         content.add(scrollPane, BorderLayout.CENTER);
         
-        // Instructions
         JLabel instructions = createLabel(
             "<html>• Click items to toggle selection<br>" +
             "• Click group names to select all in group<br>" +
@@ -599,7 +563,6 @@ public class AutomationUI {
         dialog.setModal(true);
         dialog.setVisible(true);
         
-        // Return only indices of selectable items (non-group headers)
         return result[0] != null ? 
                 Arrays.stream(result[0])
                     .filter(idx -> !isGroupHeader.get(idx))
@@ -608,7 +571,7 @@ public class AutomationUI {
         }
     
     @SuppressWarnings("serial")
-	public static String showFileChooser(Component parent, String title) {
+    public static String showFileChooser(Component parent, String title) {
         JDialog dialog = createStyledDialog(title, 600, 400);
         JPanel content = (JPanel)((JPanel)dialog.getContentPane()).getComponent(1);
         content.setLayout(new BorderLayout());

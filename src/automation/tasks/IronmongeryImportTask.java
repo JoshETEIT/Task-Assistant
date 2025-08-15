@@ -66,9 +66,11 @@ public class IronmongeryImportTask implements AutomationTask {
         public void setCost(String cost) { this.cost = cost; }
         public String getUnit() { return unit; }
         public void setUnit(String unit) { this.unit = unit; }
-        public String getNotes() { return notes; }
+        @SuppressWarnings("unused")
+		public String getNotes() { return notes; }
         public void setNotes(String notes) { this.notes = notes; }
-        public String getType() { return type; }
+        @SuppressWarnings("unused")
+		public String getType() { return type; }
         public void setType(String type) { this.type = type; }
     }
 
