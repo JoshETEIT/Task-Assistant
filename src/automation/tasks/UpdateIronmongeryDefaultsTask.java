@@ -5,6 +5,8 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import automation.ui.ProgressUI;
+import automation.helpers.InteractionHelper;
+import automation.helpers.ProgressTracker;
 import automation.ui.AutomationUI;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -182,125 +184,76 @@ System.out.println("Error with header '" + headerText + "': " + e.getMessage());
     private void updateTemplateDefaults(WebDriver driver, ProgressUI progressUI) throws InterruptedException {
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
         JavascriptExecutor js = (JavascriptExecutor) driver;
+        
+        // Initialize helpers (config values could come from properties file)
+        InteractionHelper interaction = new InteractionHelper(js, true, "#FFBF00"); // Highlight enabled with amber color
+        ProgressTracker progress = new ProgressTracker(progressUI, true); // Progress updates enabled
 
         try {
-            System.out.println("[DEBUG] Starting updateTemplateDefaults");
-            progressUI.updateStepProgress(10, "Opening template");
-            
-            System.out.println("[DEBUG] Looking for 'Finish & Ironmongery' node");
+            // 1. Open Finish & Ironmongery node
+            progress.updateProgress(10, "Opening template");
             WebElement ironmongeryNode = wait.until(ExpectedConditions.elementToBeClickable(
-                    By.xpath("//span[@class='tree-text' and contains(text(),'Finish & Ironmongery')]")));
-            System.out.println("[DEBUG] Found ironmongery node, clicking...");
-            js.executeScript("arguments[0].click();", ironmongeryNode);
-            
-            System.out.println("[DEBUG] Waiting for property table to appear");
-            wait.until(ExpectedConditions.presenceOfElementLocated(
-                    By.cssSelector("div.property-list table.property-table")));
+                By.xpath("//span[@class='tree-text' and contains(text(),'Finish & Ironmongery')]")));
+            interaction.performAction(ironmongeryNode, "click");
+            interaction.markCompleted(ironmongeryNode);
 
-            progressUI.updateStepProgress(30, "Opening settings");
-            
-            System.out.println("[DEBUG] Looking for main ironmongery row");
+            // 2. Wait for property table (no highlight)
+            progress.updateProgress(20, "Loading properties");
+            wait.until(ExpectedConditions.presenceOfElementLocated(
+                By.cssSelector("div.property-list table.property-table")));
+
+            // 3. Open settings dialog
+            progress.updateProgress(30, "Opening settings");
             WebElement ironmongeryRow = wait.until(ExpectedConditions.presenceOfElementLocated(
-                    By.xpath("//tr[.//td[contains(@class, 'main_ironmongery')]]")));
-            System.out.println("[DEBUG] Found ironmongery row");
-                
-            System.out.println("[DEBUG] Looking for settings window icon");
+                By.xpath("//tr[.//td[contains(@class, 'main_ironmongery')]]")));
+            
             WebElement windowIcon = ironmongeryRow.findElement(
                 By.cssSelector("img.property-icon-more[title*='Opens dialog window']"));
-            System.out.println("[DEBUG] Found window icon, clicking...");
-            js.executeScript("arguments[0].click();", windowIcon);
-        
-            System.out.println("[DEBUG] Waiting for modal dialog to appear");
+            interaction.performAction(windowIcon, "click");
+            interaction.markCompleted(windowIcon);
+
+            // 4. Process modal dialog
+            progress.updateProgress(40, "Processing dialog");
             WebElement modal = wait.until(ExpectedConditions.visibilityOfElementLocated(
                 By.cssSelector("div.ui-dialog")));
-            System.out.println("[DEBUG] Modal dialog is visible");
-                
-            progressUI.updateStepProgress(50, "Applying defaults");
             
-            System.out.println("[DEBUG] Looking for default button");
+            // 5. Apply defaults
+            progress.updateProgress(50, "Applying defaults");
             WebElement defaultButton = modal.findElement(
                 By.xpath(".//button[@name='default_button' and contains(@class, 'side_button')]"));
-            System.out.println("[DEBUG] Found default button, scrolling into view...");
-            js.executeScript("arguments[0].scrollIntoView({block: 'center'});", defaultButton);
-            Thread.sleep(500);
-            System.out.println("[DEBUG] Clicking default button...");
-            defaultButton.click();
-            
-            System.out.println("[DEBUG] Waiting for defaults to be applied");
-            try {
-                // Wait for any input to appear in the dialog
-                wait.until(ExpectedConditions.presenceOfElementLocated(
-                    By.cssSelector("div.ui-dialog input[type='text']")));
-                System.out.println("[DEBUG] Input fields detected - defaults applied");
-            } catch (Exception e) {
-                System.out.println("[DEBUG] Failed to detect input fields after applying defaults");
-                throw e;
-            }
-            
-            // Additional safety wait
-            Thread.sleep(500);
-            
-            progressUI.updateStepProgress(70, "Saving settings");
-            
-            System.out.println("[DEBUG] Looking for OK button");
-            WebElement okButton = wait.until(ExpectedConditions.elementToBeClickable(
-                By.xpath(".//button[@name='ok_button' and contains(@class, 'side_button')]")));
-            System.out.println("[DEBUG] Found OK button, attempting to click...");
-            
-            // Scroll and click with JavaScript for reliability
-            js.executeScript("arguments[0].scrollIntoView({block: 'center'});", okButton);
-            Thread.sleep(300);
-            System.out.println("[DEBUG] Executing JavaScript click on OK button");
-            js.executeScript("arguments[0].click();", okButton);
-            
-            System.out.println("[DEBUG] Waiting for dialog to close");
-            try {
-                wait.until(ExpectedConditions.invisibilityOf(okButton));
-                System.out.println("[DEBUG] Dialog closed successfully");
-            } catch (Exception e) {
-                System.out.println("[DEBUG] Dialog may not have closed - checking current URL");
-                System.out.println("[DEBUG] Current URL: " + driver.getCurrentUrl());
-            }
-            
-            Thread.sleep(1000);
-            
-            progressUI.updateStepProgress(80, "Saving template");
+            interaction.performAction(defaultButton, "click");
+            interaction.markCompleted(defaultButton);
 
-            System.out.println("[DEBUG] Looking for Save Drawing button");
+            // 6. Verify defaults applied
+            wait.until(d -> {
+                WebElement activeElement = driver.switchTo().activeElement();
+                return "input".equals(activeElement.getTagName()) && 
+                       "text".equals(activeElement.getDomProperty("type"));
+            });
+
+            // 7. Confirm changes
+            progress.updateProgress(70, "Confirming changes");
+            WebElement okButton = modal.findElement(
+                By.xpath(".//button[@name='ok_button' and contains(@class, 'side_button')]"));
+            interaction.performAction(okButton, "click");
+            interaction.markCompleted(okButton);
+            
+            // 8. Save template
+            progress.updateProgress(80, "Saving template");
             WebElement saveButton = wait.until(ExpectedConditions.elementToBeClickable(
                 By.xpath(".//button[contains(@class,'drawing-board-button') and contains(.,'Save Drawing')]")));
-            System.out.println("[DEBUG] Found Save button, clicking...");
-            saveButton.click();
-
-            System.out.println("[DEBUG] Waiting for save to complete (button to get disabled attribute)");
-            try {
-                // Wait for the disabled attribute to appear
-                wait.until(ExpectedConditions.attributeToBe(saveButton, "disabled", "disabled"));
-                System.out.println("[DEBUG] Save button disabled - save complete");
-                
-                // Additional verification that the button is actually disabled
-                if (saveButton.isEnabled()) {
-                    System.out.println("[WARNING] Button has disabled attribute but is still enabled!");
-                } else {
-                    System.out.println("[DEBUG] Button confirmed disabled - safe to proceed");
-                }
-                
-            } catch (Exception e) {
-                System.out.println("[ERROR] Failed while waiting for save to complete");
-                System.out.println("[DEBUG] Current button state:");
-                System.out.println("[DEBUG] - Enabled: " + saveButton.isEnabled());
-                System.out.println("[DEBUG] - Disabled attribute: " + saveButton.getDomProperty("disabled"));
-                System.out.println("[DEBUG] - Outer HTML: " + saveButton.getDomAttribute("outerHTML"));
-                
-                throw new RuntimeException("Save operation did not complete properly", e);
-            }
-
-            progressUI.updateStepProgress(100, "✅ Saved");
-            System.out.println("[DEBUG] Proceeding to next step");
+            interaction.performAction(saveButton, "click");
+            
+            // Wait for save completion
+            wait.until(ExpectedConditions.not(ExpectedConditions.elementToBeClickable(saveButton)));
+            interaction.markCompleted(saveButton);
+            
+            progress.updateProgress(100, "✅ Saved");
             
         } catch (Exception e) {
-            System.out.println("[ERROR] Exception occurred during template update: " + e.getMessage());
-            progressUI.updateStepProgress(100, "❌ Failed");
+            // Error handling
+            js.executeScript("document.body.style.border='4px solid red';");
+            progress.updateProgress(100, "❌ Failed");
             throw e;
         }
     }
