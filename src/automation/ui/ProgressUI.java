@@ -53,6 +53,12 @@ public class ProgressUI {
         updateStepProgress(stepValue, status);
         updateStatus(status);
     }
+    
+    public void setVisible(boolean visible) {
+        if (progressDialog != null) {
+            progressDialog.setVisible(visible);
+        }
+    }
 
     public void close() {
         if (progressDialog != null) {

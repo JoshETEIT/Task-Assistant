@@ -13,12 +13,11 @@ public abstract class BaseUploadImagesTask implements AutomationTask {
     protected WebDriver driver;
     protected WebDriverWait wait;
     protected ProgressUI progressUI;
-    protected Set<String> excludedWords = Collections.emptySet(); // Default empty
-    // Required implementations
+    protected Set<String> excludedWords = Collections.emptySet();
+
     protected abstract List<WebElement> getPartRows();
     protected abstract boolean isMatch(String imageName, String partName);
 
-    // Make these optional (provide default implementations)
     protected String getTabXpath() { return null; }
     protected String getUrlSegment() { return null; }
     protected String getPartTypeName() { return this.getClass().getSimpleName(); }
@@ -31,7 +30,7 @@ public abstract class BaseUploadImagesTask implements AutomationTask {
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(20));
         
         try {
-            String folderPath = getImageFolderPath();
+            String folderPath = getImageFolderPath(progressUI);
             if (folderPath == null) return;
             
             List<File> imageFiles = listImageFilesRecursively(new File(folderPath));
@@ -45,8 +44,18 @@ public abstract class BaseUploadImagesTask implements AutomationTask {
             processParts(partRows, imageFiles);
         } catch (Exception e) {
             handleError(e);
+        }
+    }
+    
+    protected String getImageFolderPath(ProgressUI progressUI) {
+        try {
+            progressUI.setVisible(false);
+            return AutomationUI.showDirectoryChooser(
+                null, 
+                "Select Images Directory for " + getPartTypeName()
+            );
         } finally {
-            progressUI.close();
+            progressUI.setVisible(true);
         }
     }
     

@@ -22,23 +22,18 @@ public class IronmongeryImportTask implements AutomationTask {
     @Override
     public void execute(WebDriver driver, String baseUrl, ProgressUI progressUI) {
         try {
-            // Step 1: Get CSV file
-            progressUI.close(); // Close progress UI for file selection
-            String csvPath = AutomationUI.showFileChooser(
-                null,
-                "Automation Suite | Select Ironmongery CSV File"
-            );
+            progressUI.updateStatus("Selecting CSV file...");
+            String csvPath = showFileChooserWithProgress(progressUI);
 
             if (csvPath == null) {
                 progressUI.updateStatus("Import cancelled");
                 return;
             }
 
-            // Step 2: Read CSV
-            progressUI.showProgress("Importing Ironmongery", "Starting...");
+            progressUI.updateStatus("Reading CSV...");
             ArrayList<IronmongeryItem> items = readIronmongeryCSV(csvPath);
             
-            // Step 3: Perform import
+            progressUI.updateStatus("Importing items...");
             progressUI.setMainProgressMax(items.size());
             performImport(items, driver, baseUrl, progressUI);
             
@@ -51,6 +46,18 @@ public class IronmongeryImportTask implements AutomationTask {
                 "Error", 
                 JOptionPane.ERROR_MESSAGE
             );
+        }
+    }
+
+    private String showFileChooserWithProgress(ProgressUI progressUI) {
+        try {
+            progressUI.setVisible(false);
+            return AutomationUI.showFileChooser(
+                null,
+                "Automation Suite | Select Ironmongery CSV File"
+            );
+        } finally {
+            progressUI.setVisible(true);
         }
     }
 
