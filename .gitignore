@@ -1,1 +1,22 @@
-/bin/
+# === Eclipse/Java ===
+.classpath
+.project
+.settings/
+bin/
+*.class
+
+# === Build/Output ===
+target/
+build/
+*.jar
+*.war
+*.ear
+
+# === System Files ===
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+
+# === Custom Files ===
+servers.csv  # Excludes the CSV with server credentials
