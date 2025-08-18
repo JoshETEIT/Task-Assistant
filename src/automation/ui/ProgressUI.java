@@ -54,6 +54,28 @@ public class ProgressUI {
         updateStatus(status);
     }
     
+    public void startTask(String taskName) {
+        showProgress(taskName, "Starting...");
+        resetProgress();
+    }
+
+    public void resetProgress() {
+        setMainProgressMax(1);
+        setStepProgressMax(100);
+        updateMainProgress(0);
+        updateStepProgress(0, "");
+    }
+
+    public void showCompletion() {
+        updateStepProgress(100, "✅ Task completed");
+        updateStatus("Finished successfully");
+    }
+
+    public void showCancellation() {
+        updateStepProgress(100, "⏹ Task cancelled");
+        updateStatus("Operation cancelled by user");
+    }
+    
     public void setVisible(boolean visible) {
         if (progressDialog != null) {
             progressDialog.setVisible(visible);

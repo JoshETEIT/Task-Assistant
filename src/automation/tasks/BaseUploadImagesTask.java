@@ -2,14 +2,15 @@ package automation.tasks;
 
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.*;
-import automation.ui.ProgressUI;
 import automation.ui.AutomationUI;
+import automation.ui.ProgressUI;
+
 import java.io.File;
 import java.time.Duration;
 import java.util.*;
 import javax.swing.*;
 
-public abstract class BaseUploadImagesTask implements AutomationTask {
+public abstract class BaseUploadImagesTask extends TaskBase {
     protected WebDriver driver;
     protected WebDriverWait wait;
     protected ProgressUI progressUI;
@@ -30,8 +31,13 @@ public abstract class BaseUploadImagesTask implements AutomationTask {
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(20));
         
         try {
-            String folderPath = getImageFolderPath(progressUI);
-            if (folderPath == null) return;
+            initializeProgress(progressUI, 1); // Will be updated when we know part count
+            
+            String folderPath = getDirectory(progressUI, getPartTypeName() + " Images");
+            if (folderPath == null) {
+                progressUI.showCancellation();
+                return;
+            }
             
             List<File> imageFiles = listImageFilesRecursively(new File(folderPath));
             if (imageFiles.isEmpty()) {
@@ -42,8 +48,9 @@ public abstract class BaseUploadImagesTask implements AutomationTask {
             List<WebElement> partRows = getPartRows();
             
             processParts(partRows, imageFiles);
+            complete(progressUI, "Image upload completed");
         } catch (Exception e) {
-            handleError(e);
+            handleError(progressUI, e);
         }
     }
     
