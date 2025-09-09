@@ -110,6 +110,7 @@ public class AddLeadTask implements AutomationTask {
             // === SAVE ADDRESS ===
             progressUI.updateStepProgress(95, "Saving address");
             clickButtonById(driver, "coloured_button_create_box");
+            clickButtonById(driver, "convert_to_real_lead_button");
             
             // === COMPLETION ===
             progressUI.updateStepProgress(100, "✅ Lead created successfully");
