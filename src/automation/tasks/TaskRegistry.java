@@ -15,6 +15,7 @@ public class TaskRegistry {
         register(new UploadIronmongeryImagesTask());
         register(new UpdateIronmongeryDefaultsTask());
         register(new PageLoadTimeTask());
+        register(new TimberCuttingListTask());
     }
     
     public static void register(AutomationTask task) {

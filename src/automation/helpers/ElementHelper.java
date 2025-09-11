@@ -126,4 +126,51 @@ public class ElementHelper {
             System.out.printf("Element with CSS selector '%s' not clickable.%n", cssSelector);
         }
     }
+    
+    public static void enterCodeMirrorByLabel(WebDriver driver, String labelText, String value) {
+        try {
+            String xpath = "//span[normalize-space(.)='" + labelText + "']" +
+                           "/following::div[contains(@class,'code-editor')][1]";
+            WebElement editorContainer = new WebDriverWait(driver, Duration.ofSeconds(SHORT_WAIT_TIME))
+                    .until(ExpectedConditions.presenceOfElementLocated(By.xpath(xpath)));
+
+            // Use CodeMirror API to set value
+            ((JavascriptExecutor) driver).executeScript(
+                "arguments[0].querySelector('.CodeMirror').CodeMirror.setValue(arguments[1]);",
+                editorContainer, value
+            );
+            System.out.printf("Set CodeMirror field '%s' to '%s'%n", labelText, value);
+        } catch (Exception e) {
+            System.out.printf("Unable to set CodeMirror for '%s': %s%n", labelText, e.getMessage());
+        }
+    }
+
+    public static void selectDropdownByLabel(WebDriver driver, String labelText, String optionText) {
+        try {
+            String xpath = "//span[normalize-space(.)='" + labelText + "']" +
+                           "/following::select[1]";
+            WebElement dropdown = new WebDriverWait(driver, Duration.ofSeconds(SHORT_WAIT_TIME))
+                    .until(ExpectedConditions.elementToBeClickable(By.xpath(xpath)));
+            new Select(dropdown).selectByVisibleText(optionText);
+            System.out.printf("Dropdown '%s' set to '%s'%n", labelText, optionText);
+        } catch (Exception e) {
+            System.out.printf("Dropdown '%s' not found: %s%n", labelText, e.getMessage());
+        }
+    }
+
+    public static void clickActiveButton(WebDriver driver, String yesOrNo) {
+        String expected = yesOrNo.equalsIgnoreCase("yes") ? "Yes" : "No";
+        String xpath = "//div[.//span[normalize-space(text())='Active']]//button[span[contains(.,'" + expected + "')]]";
+
+        try {
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(3));
+            WebElement activeBtn = wait.until(ExpectedConditions.elementToBeClickable(By.xpath(xpath)));
+            activeBtn.click();
+            System.out.printf("Active set to %s%n", yesOrNo);
+        } catch (Exception e) {
+            System.out.printf("Active toggle '%s' not clickable: %s%n", yesOrNo, e.getMessage());
+        }
+    }
+
+
 }
