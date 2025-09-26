@@ -1,9 +1,10 @@
 package automation.tasks;
 
-import automation.helpers.CsvReader;
-import automation.helpers.ElementHelper;
-import automation.helpers.FileChooserHelper;
-import automation.ui.ProgressUI;
+import java.io.IOException;
+import java.time.Duration;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.TimeoutException;
@@ -12,11 +13,10 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
-import java.io.IOException;
-import java.time.Duration;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import automation.helpers.CsvReader;
+import automation.helpers.ElementHelper;
+import automation.helpers.FileChooserHelper;
+import automation.ui.ProgressUI;
 
 public class TimberCuttingListTask extends TaskBase {
 

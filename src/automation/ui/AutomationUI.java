@@ -339,7 +339,7 @@ public class AutomationUI {
     public static int showOptionDialog(Component parent, String message, String title, String[] options) {
         // Fixed width and MANUAL height setting
         final int DIALOG_WIDTH = 400;
-        final int DIALOG_HEIGHT = 240; // <-- CHANGE THIS VALUE AS NEEDED
+        final int DIALOG_HEIGHT = 275; // <-- CHANGE THIS VALUE AS NEEDED
         
         JDialog dialog = createStyledDialog(title, DIALOG_WIDTH, DIALOG_HEIGHT);
         JPanel content = (JPanel)((JPanel)dialog.getContentPane()).getComponent(1);
