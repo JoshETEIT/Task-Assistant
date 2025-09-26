@@ -9,20 +9,28 @@ import java.util.Optional;
 
 public class ElementHelper {
     private static final int SHORT_WAIT_TIME = 3;
+    
+    
+    //
+    
+    public enum LocatorType {ID, CLASS}
 
-    public static void enterTextById(WebDriverWait wait, String id, String text) {
+    public static void enterText(WebDriverWait wait, LocatorType type, String locatorValue, String text) {
+    	
         try {
-            wait.until(ExpectedConditions.visibilityOfElementLocated(By.id(id))).sendKeys(text);
-        } catch (Exception e) {
-            System.out.printf("Unable to find input field with ID '%s'. Skipping input.%n", id);
-        }
-    }
+            By locator = (type == LocatorType.ID)
+                    ? By.id(locatorValue)
+                    : By.className(locatorValue);
 
-    public static void enterTextByClass(WebDriverWait wait, String className, String text) {
-        try {
-            wait.until(ExpectedConditions.visibilityOfElementLocated(By.className(className))).sendKeys(text);
+            wait.until(ExpectedConditions
+                    .visibilityOfElementLocated(locator))
+                .sendKeys(text);
+
         } catch (Exception e) {
-            System.out.printf("Unable to find input field with class '%s'. Skipping input.%n", className);
+            System.out.printf(
+                "Unable to find input field (%s='%s'). Skipping input.%n",
+                type, locatorValue
+            );
         }
     }
 

@@ -85,12 +85,12 @@ public class GlassPartImportTask extends TaskBase {
                 ((JavascriptExecutor)driver).executeScript("window.scrollTo(0, 0)");
                 clickAddPartButtonWithRetry(driver, wait);
                 
-                enterTextById(wait, "part_no", item.getPartNo());
-                enterTextById(wait, "part_name", item.getPartName());
+                enterText(wait, LocatorType.ID, "part_no", item.getPartNo());
+                enterText(wait, LocatorType.ID, "part_name", item.getPartName());
                 selectDropdownByVisibleText(driver, "part_unit_name", item.getpUnit());
                 selectDropdownByVisibleText(driver, "part_allocated_unit_name", "each");
-                enterTextById(wait, "part_allocated_amount_in_purchase_unit", "1");
-                enterTextById(wait, "part_cost", item.getCost());
+                enterText(wait, LocatorType.ID, "part_allocated_amount_in_purchase_unit", "1");
+                enterText(wait, LocatorType.ID, "part_cost", item.getCost());
 
                 if ("yes".equalsIgnoreCase(item.getObscure())) {
                     selectCheckboxOrRadioButton(driver, "part_is_obscure_glass");

@@ -114,13 +114,13 @@ public class AddLeadTask implements AutomationTask {
             addNewLeadButton.click();
             
             progressUI.updateStepProgress(15, "Filling basic fields");
-            enterTextById(wait, "label", "Test lead");
+            enterText(wait, LocatorType.ID, "label", "Test lead");
             selectDropdownByVisibleText(driver, "source_short_name", "Other");
             selectDropdownByVisibleText(driver, "sector_short_name", "Commercial Install");
             selectDropdownByVisibleText(driver, "type_short_name", "New Windows / Doors (Replacement)");
             selectDropdownByVisibleText(driver, "status_short_name", "New");
             selectDropdownByVisibleText(driver, "method_of_first_contact_short_name", "E-mail");
-            enterTextById(wait, "notes", "This lead was created automatically");
+            enterText(wait, LocatorType.ID, "notes", "This lead was created automatically");
             driver.findElement(By.tagName("body")).click();
             
             progressUI.updateStepProgress(30, "Creating new contact");
@@ -131,9 +131,9 @@ public class AddLeadTask implements AutomationTask {
             
             progressUI.updateStepProgress(40, "Filling contact details");
             selectDropdownByVisibleText(driver, "human_title", "Mrs");
-            enterTextById(wait, "human_forename", "Jane");
-            enterTextById(wait, "human_surname", "Doe");
-            enterTextById(wait, "contact_notes", "This is not a real person");
+            enterText(wait, LocatorType.ID, "human_forename", "Jane");
+            enterText(wait, LocatorType.ID, "human_surname", "Doe");
+            enterText(wait, LocatorType.ID, "contact_notes", "This is not a real person");
             selectMultiCheckboxDropdown(driver, new String[]{"quantity_surveyor", "landlord"});
 
             try {
@@ -146,8 +146,7 @@ public class AddLeadTask implements AutomationTask {
             }
 
             progressUI.updateStepProgress(60, "Adding phone number");
-            enterTextByClass(wait, "dynamic_contact_input", "000-000-0000");
-            
+            enterText(wait, LocatorType.CLASS, "dynamic_contact_input", "000-000-0000");
             progressUI.updateStepProgress(70, "Saving contact");
             clickButtonById(driver, "coloured_button_create_box");
             
@@ -159,12 +158,12 @@ public class AddLeadTask implements AutomationTask {
             }
             
             progressUI.updateStepProgress(85, "Filling address");
-            enterTextById(wait, "address_line_1", "123 Fake Street");
-            enterTextById(wait, "address_line_2", "Suite 100");
-            enterTextById(wait, "address_line_3", "Business Park");
-            enterTextById(wait, "city", "Faketown");
-            enterTextById(wait, "county", "Fakeshire");
-            enterTextById(wait, "postcode", "FK12 3AB");
+            enterText(wait, LocatorType.ID, "address_line_1", "123 Fake Street");
+            enterText(wait, LocatorType.ID, "address_line_2", "Suite 100");
+            enterText(wait, LocatorType.ID, "address_line_3", "Business Park");
+            enterText(wait, LocatorType.ID, "city", "Faketown");
+            enterText(wait, LocatorType.ID, "county", "Fakeshire");
+            enterText(wait, LocatorType.ID, "postcode", "FK12 3AB");
             
             progressUI.updateStepProgress(95, "Saving address");
             clickButtonById(driver, "coloured_button_create_box");

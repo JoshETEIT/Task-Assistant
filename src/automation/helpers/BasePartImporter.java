@@ -11,10 +11,12 @@ public abstract class BasePartImporter<T> {
     
     protected final WebDriver driver;
     protected final WebDriverWait wait;
+    protected final ScreenshotHandler screenshotHandler;
     
     public BasePartImporter(WebDriver driver) {
         this.driver = driver;
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(20));
+        this.screenshotHandler = new ScreenshotHandler(driver);
     }
     
     protected abstract T createItem(String[] fields);
@@ -40,7 +42,6 @@ public abstract class BasePartImporter<T> {
             try {
                 scrollToTop();
                 clickAddButton();
-                fillCommonFields(item);
                 fillItemSpecificFields(item);
                 submitForm();
             } catch (Exception e) {
@@ -53,15 +54,20 @@ public abstract class BasePartImporter<T> {
         ((JavascriptExecutor)driver).executeScript("window.scrollTo(0, 0)");
     }
     
-    private void clickAddButton() {
+    protected void clickAddButton() {
         WebElement addButton = wait.until(ExpectedConditions.elementToBeClickable(
             By.id("add_part_button")));
-        addButton.click();
-    }
-    
-    private void fillCommonFields(T item) {
-        // Implement common field filling logic here
-        // Example: enterTextById(wait, "part_no", item.getPartNo());
+        
+        try {
+            addButton.click();
+        } catch (ElementClickInterceptedException e) {
+            // Take screenshot when interception occurs
+            screenshotHandler.screenshot("click_intercepted", addButton);
+            
+            // Fallback to JavaScript click
+            System.out.println("⚠️ Click intercepted, using JavaScript fallback");
+            ((JavascriptExecutor) driver).executeScript("arguments[0].click();", addButton);
+        }
     }
     
     private void submitForm() {
@@ -72,6 +78,10 @@ public abstract class BasePartImporter<T> {
     
     private void handleError(Exception e) {
         System.out.println("Error importing item: " + e.getMessage());
+        
+        // Take screenshot on error
+        screenshotHandler.screenshotOnError(e, "import_error");
+        
         try {
             driver.findElement(By.cssSelector(".ui-dialog-titlebar-close")).click();
         } catch (Exception ex) {

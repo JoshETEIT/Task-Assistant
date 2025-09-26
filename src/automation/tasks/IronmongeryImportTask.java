@@ -90,18 +90,18 @@ public class IronmongeryImportTask extends TaskBase {
                     ExpectedConditions.elementToBeClickable(By.id("add_part_button")));
                 addButton.click();
                 
-                enterTextById(wait, "part_no", item.getPartNo());
-                enterTextById(wait, "part_name", item.getName());
+                enterText(wait, LocatorType.ID, "part_no", item.getPartNo());
+                enterText(wait, LocatorType.ID, "part_name", item.getName());
                 selectDropdownByVisibleText(driver, "part_unit_name", item.getUnit());
                 selectDropdownByVisibleText(driver, "part_allocated_unit_name", "each");
                 
                 if (item.getUnit().equalsIgnoreCase("pair") || 
                     item.getUnit().equalsIgnoreCase("set") ||
                     item.getUnit().equalsIgnoreCase("roll")) {
-                    enterTextById(wait, "part_allocated_amount_in_purchase_unit", "1");
+                    enterText(wait, LocatorType.ID, "part_allocated_amount_in_purchase_unit", "1");
                 }
                 
-                enterTextById(wait, "part_cost", item.getCost());
+                enterText(wait, LocatorType.ID, "part_cost", item.getCost());
                 clickButtonById(driver, "part_dialog_submit_new");
                 wait.until(ExpectedConditions.invisibilityOfElementLocated(
                     By.id("part_dialog_submit_new")));
