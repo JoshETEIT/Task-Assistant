@@ -6,7 +6,7 @@ import java.util.List;
 import org.jasypt.util.text.BasicTextEncryptor;
 
 public class ServerManager {
-    private static final String CSV_PATH = "servers.csv";
+    private static final String CSV_PATH = "resources/CSVs/servers.csv";
     private static final String ENCRYPTION_PASSWORD = "test-automation-key-123"; // Should be more secure in production
     private List<Server> servers;
     private BasicTextEncryptor encryptor;

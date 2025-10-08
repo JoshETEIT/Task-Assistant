@@ -1,5 +1,6 @@
 package automation;
 
+import automation.config.ConfigManager;
 import automation.tasks.AutomationTask;
 import automation.tasks.PageLoadTimeTask;
 import automation.tasks.TaskRegistry;
@@ -24,6 +25,9 @@ public class TestSuite {
     private static final ProgressUI progressUI = new ProgressUI();
 
     public static void main(String[] args) {
+    	
+    	ConfigManager configManager = ConfigManager.getInstance();
+        
         startApplication();
     }
 
