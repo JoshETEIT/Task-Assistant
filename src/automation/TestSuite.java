@@ -11,6 +11,7 @@ import io.github.bonigarcia.wdm.WebDriverManager;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
@@ -47,8 +48,16 @@ public class TestSuite {
     }
 
     public static void runSeleniumTest(ServerManager.Server server, String taskName) {
+
+    	ChromeOptions options = new ChromeOptions();
+    	options.addArguments("--incognito",
+    	                     "--disable-save-password-bubble",
+    	                     "--disable-autofill",
+    	                     "--disable-autofill-profile",
+    	                     "--disable-autofill-keyboard-accessory-view");
+    	WebDriver driver = new ChromeDriver(options);
+    	
         WebDriverManager.chromedriver().setup();
-        WebDriver driver = new ChromeDriver();
         
         try {
             // Initialize progress UI

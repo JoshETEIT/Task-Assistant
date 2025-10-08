@@ -109,9 +109,7 @@ public class AddLeadTask implements AutomationTask {
             wait.until(ExpectedConditions.urlContains("/Home"));
             
             progressUI.updateStepProgress(10, "Clicking Add New Lead");
-            WebElement addNewLeadButton = driver.findElement(
-                By.xpath("//a[.//span[normalize-space(text())='Add New Lead']]"));
-            addNewLeadButton.click();
+            clickButton(driver, LocatorType.XPATH, "//a[.//span[normalize-space(text())='Add New Lead']]", Screenshot.ON, 3);
             
             progressUI.updateStepProgress(15, "Filling basic fields");
             enterText(wait, LocatorType.ID, "label", "Test lead");
@@ -124,7 +122,7 @@ public class AddLeadTask implements AutomationTask {
             driver.findElement(By.tagName("body")).click();
             
             progressUI.updateStepProgress(30, "Creating new contact");
-            clickButtonWithRetry(driver, "coloured_button_new_contact", 3, 2);
+            clickButton(driver, LocatorType.ID, "coloured_button_new_contact", Screenshot.ON, 3);
             selectCheckboxOrRadioButton(driver, "customer");
             selectCheckboxOrRadioButton(driver, "main_contact");
             selectCheckboxOrRadioButton(driver, "radio_is_human_1");
@@ -148,11 +146,12 @@ public class AddLeadTask implements AutomationTask {
             progressUI.updateStepProgress(60, "Adding phone number");
             enterText(wait, LocatorType.CLASS, "dynamic_contact_input", "000-000-0000");
             progressUI.updateStepProgress(70, "Saving contact");
-            clickButtonById(driver, "coloured_button_create_box");
+            clickButton(driver, LocatorType.ID, "coloured_button_create_box", Screenshot.ON, 3);
             
             progressUI.updateStepProgress(80, "Adding address");
             // Simple retry - just call the method again if it fails
-            if (!clickButtonWithRetry(driver, "coloured_button_new_address", 3, 2)) {
+            
+            if (!clickButton(driver, LocatorType.ID, "coloured_button_new_address", Screenshot.ON, 3)) {
                 progressUI.updateStepProgress(100, "❌ Failed to add address");
                 return false;
             }
@@ -166,8 +165,8 @@ public class AddLeadTask implements AutomationTask {
             enterText(wait, LocatorType.ID, "postcode", "FK12 3AB");
             
             progressUI.updateStepProgress(95, "Saving address");
-            clickButtonById(driver, "coloured_button_create_box");
-            clickButtonById(driver, "convert_to_real_lead_button");
+            clickButton(driver, LocatorType.ID, "coloured_button_create_box", Screenshot.ON, 3);
+            clickButton(driver, LocatorType.ID, "convert_to_real_lead_button", Screenshot.ON, 3);
             
             progressUI.updateStepProgress(100, "✅ Lead created successfully");
             return true;
