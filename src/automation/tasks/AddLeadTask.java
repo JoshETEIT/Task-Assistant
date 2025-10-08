@@ -73,6 +73,10 @@ public class AddLeadTask implements AutomationTask {
                 
                 // Return to home page after each lead (except the last one)
                 if (i < leadCount - 1) {
+                	// Wait until we're redirected to the lead details page
+                    wait.until(d -> d.getCurrentUrl().contains("/Lead/Details/"));
+                    
+                    // Then navigate to home
                     driver.get(baseUrl + "/Home");
                 }
             }
