@@ -1,0 +1,32 @@
+{
+  "ui" : {
+    "theme" : "dark",
+    "enableAnimations" : true,
+    "dialogWidth" : 400,
+    "dialogHeight" : 300,
+    "font" : {
+      "family" : "Segoe UI",
+      "size" : 14,
+      "style" : "plain"
+    }
+  },
+  "automation" : {
+    "defaultRetryAttempts" : 3,
+    "timeoutSeconds" : 30,
+    "enableScreenshots" : true,
+    "screenshotDirectory" : "screenshots",
+    "visualDebug" : true
+  },
+  "selenium" : {
+    "headless" : false,
+    "implicitWaitSeconds" : 10,
+    "pageLoadTimeoutSeconds" : 30,
+    "browser" : "chrome",
+    "window" : {
+      "width" : 1920,
+      "height" : 1080,
+      "maximize" : true
+    }
+  },
+  "custom" : null
+}
