@@ -3,6 +3,8 @@ package automation.helpers;
 import org.openqa.selenium.*;
 import org.openqa.selenium.io.FileHandler;
 
+import automation.config.ConfigManager;
+
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -12,18 +14,14 @@ public class ScreenshotHandler {
     private final String screenshotDir;
     private final boolean enabled;
     
-    public ScreenshotHandler(WebDriver driver, String baseDir, boolean enabled) {
-        this.driver = driver;
-        this.enabled = enabled;
-        this.screenshotDir = createScreenshotDirectory(baseDir);
-    }
-    
     public ScreenshotHandler(WebDriver driver) {
-        this(driver, System.getProperty("user.dir"), true);
+        this.driver = driver;
+        this.enabled = ConfigManager.getInstance().getConfig().getAutomation().isEnableScreenshots();
+        this.screenshotDir = createScreenshotDirectory();
     }
     
-    private String createScreenshotDirectory(String baseDir) {
-        File dir = new File(baseDir, "screenshots");
+    private String createScreenshotDirectory() {
+        File dir = new File(ConfigManager.getInstance().getScreenshotDirectory());
         if (!dir.exists()) {
             dir.mkdirs();
         }
@@ -120,13 +118,5 @@ public class ScreenshotHandler {
         } catch (Exception e) {
             // Ignore cleanup errors
         }
-    }
-    
-    public String getScreenshotDirectory() {
-        return screenshotDir;
-    }
-    
-    public boolean isEnabled() {
-        return enabled;
     }
 }

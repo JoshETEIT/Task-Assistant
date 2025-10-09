@@ -109,7 +109,8 @@ public class ElementHelper {
         }
 
         if (screenshot == Screenshot.ON) {
-            takeScreenshot(driver, "click-failure-" + locatorValue);
+        	ScreenshotHandler screenshotHandler = new ScreenshotHandler(driver);
+			screenshotHandler.screenshot("click-failure-" + locatorValue);
         }
         return false;
     }
@@ -323,26 +324,6 @@ public class ElementHelper {
                 throw new NoSuchElementException("No active element found for class: " + locatorValue);
             default:
                 throw new IllegalArgumentException("Unsupported locator type: " + type);
-        }
-    }
-
-    private static void takeScreenshot(WebDriver driver, String filename) {
-        try {
-            String dirPath = "src/main/resources/images/errors";
-            java.io.File dir = new java.io.File(dirPath);
-            
-            if (!dir.exists()) {
-                dir.mkdirs();
-            }
-            
-            TakesScreenshot ts = (TakesScreenshot) driver;
-            java.io.File src = ts.getScreenshotAs(OutputType.FILE);
-            java.nio.file.Path targetPath = java.nio.file.Paths.get(dirPath, filename + ".png");
-            java.nio.file.Files.copy(src.toPath(), targetPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-            
-            System.out.println("Screenshot saved: " + filename + ".png at: " + targetPath.toAbsolutePath());
-        } catch (Exception e) {
-            System.out.println("Screenshot failed: " + e.getMessage());
         }
     }
     

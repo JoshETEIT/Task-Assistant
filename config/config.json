@@ -3,7 +3,7 @@
     "theme" : "dark",
     "enableAnimations" : true,
     "dialogWidth" : 400,
-    "dialogHeight" : 300,
+    "dialogHeight" : 275,
     "font" : {
       "family" : "Segoe UI",
       "size" : 14,
@@ -13,8 +13,8 @@
   "automation" : {
     "defaultRetryAttempts" : 3,
     "timeoutSeconds" : 30,
-    "enableScreenshots" : true,
-    "screenshotDirectory" : "screenshots",
+    "enableScreenshots" : false,
+    "screenshotDirectory" : "Errors/screenshots",
     "visualDebug" : true
   },
   "selenium" : {

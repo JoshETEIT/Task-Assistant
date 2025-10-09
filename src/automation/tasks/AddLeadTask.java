@@ -5,6 +5,7 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import automation.ui.ProgressUI;
+import automation.helpers.ScreenshotHandler;
 import automation.ui.AutomationUI;
 import javax.swing.*;
 
@@ -23,6 +24,7 @@ public class AddLeadTask implements AutomationTask {
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
         
         try {
+        	
             // Ask user for number of leads to add
             String leadCountStr = AutomationUI.showInputDialog(
                 null, 
@@ -173,6 +175,7 @@ public class AddLeadTask implements AutomationTask {
             clickButton(driver, LocatorType.ID, "convert_to_real_lead_button", Screenshot.ON, 3);
             
             progressUI.updateStepProgress(100, "✅ Lead created successfully");
+            new ScreenshotHandler(driver).screenshot("add-lead-success");
             return true;
 
         } catch (Exception e) {
