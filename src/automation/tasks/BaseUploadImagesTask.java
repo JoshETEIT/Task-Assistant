@@ -35,7 +35,7 @@ public abstract class BaseUploadImagesTask extends TaskBase {
             
             String folderPath = getDirectory(progressUI, getPartTypeName() + " Images");
             if (folderPath == null) {
-                progressUI.showCancellation();
+            	cancelAndHide(progressUI);
                 return;
             }
             
@@ -48,9 +48,9 @@ public abstract class BaseUploadImagesTask extends TaskBase {
             List<WebElement> partRows = getPartRows();
             
             processParts(partRows, imageFiles);
-            complete(progressUI, "Image upload completed");
+            completeAndHide(progressUI, "Image upload completed");
         } catch (Exception e) {
-            handleError(progressUI, e);
+        	errorAndHide(progressUI, e);
         }
     }
     

@@ -66,14 +66,20 @@ public class ProgressUI {
         updateStepProgress(0, "");
     }
 
-    public void showCompletion() {
-        updateStepProgress(100, "✅ Task completed");
-        updateStatus("Finished successfully");
-    }
-
     public void showCancellation() {
         updateStepProgress(100, "⏹ Task cancelled");
         updateStatus("Operation cancelled by user");
+    }
+    
+    public void completeAndHide(String message) {
+        updateStepProgress(100, "✅ " + message);
+        updateStatus(message);
+        
+        new javax.swing.Timer(1000, e -> {
+            setVisible(false);
+            resetProgress();
+            ((javax.swing.Timer)e.getSource()).stop();
+        }).start();
     }
     
     public void setVisible(boolean visible) {

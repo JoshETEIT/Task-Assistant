@@ -83,7 +83,7 @@ public class AddLeadTask implements AutomationTask {
                 }
             }
             
-            progressUI.showCompletion();
+            progressUI.completeAndHide("Leads added");
             Thread.sleep(1000);
             
             // Return to task selection instead of closing

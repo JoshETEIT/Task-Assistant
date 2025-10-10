@@ -25,7 +25,7 @@ public class GlassPartImportTask extends TaskBase {
             progressUI.updateStatus("Selecting CSV file...");
             String csvPath = getFile(progressUI, "Glass Parts CSV");
             if (csvPath == null) {
-                progressUI.showCancellation();
+            	cancelAndHide(progressUI);
                 return;
             }
 
@@ -36,7 +36,7 @@ public class GlassPartImportTask extends TaskBase {
             progressUI.setMainProgressMax(items.size());
             performImport(items, driver, baseUrl, progressUI);
             
-            complete(progressUI, "Import completed");
+            completeAndHide(progressUI, "Import completed");
         } catch (Exception e) {
             handleError(progressUI, e);
         }

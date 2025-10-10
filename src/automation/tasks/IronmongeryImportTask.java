@@ -27,7 +27,7 @@ public class IronmongeryImportTask extends TaskBase {
             progressUI.updateStatus("Selecting CSV file...");
             String csvPath = getFile(progressUI, "Ironmongery CSV");
             if (csvPath == null) {
-                progressUI.showCancellation();
+                cancelAndHide(progressUI);
                 return;
             }
 
@@ -38,7 +38,7 @@ public class IronmongeryImportTask extends TaskBase {
             progressUI.setMainProgressMax(items.size());
             performImport(items, driver, baseUrl, progressUI);
             
-            complete(progressUI, "Import completed");
+            completeAndHide(progressUI, "Import completed");
         } catch (Exception e) {
             handleError(progressUI, e);
         }

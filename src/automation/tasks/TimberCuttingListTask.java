@@ -36,6 +36,7 @@ public class TimberCuttingListTask extends TaskBase {
             csvPath = FileChooserHelper.showFileChopper(progressUI, "Timber Cutting List CSV");
             if (csvPath == null || csvPath.isBlank()) {
                 FileChooserHelper.showErrorDialog("No CSV selected. Task aborted.");
+                cancelAndHide(progressUI);
                 return;
             }
         }
@@ -68,7 +69,7 @@ public class TimberCuttingListTask extends TaskBase {
         	}
             fillForm(driver, wait, row);
         }
-
+        completeAndHide(progressUI, "Timber cutting list rules imported");
     }
 
     private static Map<String, String> mapRow(String[] columns) {
@@ -145,7 +146,7 @@ public class TimberCuttingListTask extends TaskBase {
         }
 
         // Active toggle
-        ElementHelper.clickActiveButton(driver, row.getOrDefault("Active", "No"));
+        ElementHelper.ActiveToggle(driver, row.getOrDefault("Active", "No"));
         try { Thread.sleep(200); } catch (InterruptedException ignored) {}
 
         // Click "Create New Rule" button
