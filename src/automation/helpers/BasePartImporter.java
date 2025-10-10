@@ -4,6 +4,10 @@ import java.io.*;
 import java.util.ArrayList;
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.*;
+
+import automation.helpers.ElementHelper.LocatorType;
+import automation.helpers.ElementHelper.Screenshot;
+
 import java.time.Duration;
 import static automation.helpers.ElementHelper.*;
 
@@ -71,7 +75,7 @@ public abstract class BasePartImporter<T> {
     }
     
     private void submitForm() {
-        clickButtonById(driver, "part_dialog_submit_new");
+    	clickButton(driver, LocatorType.ID, "part_dialog_submit_new", Screenshot.OFF, 3);
         wait.until(ExpectedConditions.invisibilityOfElementLocated(
             By.id("part_dialog_submit_new")));
     }

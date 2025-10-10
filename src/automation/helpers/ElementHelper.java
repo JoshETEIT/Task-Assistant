@@ -3,6 +3,8 @@ package automation.helpers;
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.*;
 
+import automation.config.ConfigManager;
+
 import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
@@ -10,7 +12,7 @@ import java.util.Optional;
 public class ElementHelper {
     private static final int SHORT_WAIT_SECONDS = 3;
     private static final int LONG_WAIT_SECONDS = 10;
-    private static final boolean VISUAL_DEBUG = true; // Set to false to disable visual debugging
+    private static final boolean VISUAL_DEBUG = ConfigManager.getInstance().getConfig().getAutomation().isVisualDebug();
     
     public enum LocatorType {ID, CLASS, CSS, XPATH, ACTIVE_CLASS}
     public enum Screenshot {ON,OFF}
@@ -30,23 +32,15 @@ public class ElementHelper {
 
         for (int attempt = 1; attempt <= attempts; attempt++) {
             try {
-                waitForDOMReady(driver);
                 WebElement element = locateElement(driver, wait, type, locatorValue);
+                Thread.sleep(100);
                 
-                // 🔥 VISUAL DEBUG: Highlight in AMBER when located
-                if (VISUAL_DEBUG) {
-                    highlightElement(driver, element, "#FFA500", "3px"); // Amber
-                    Thread.sleep(300); // Brief pause to see amber highlight
-                }
+                HighlightHelper.highlight(driver, element, HighlightHelper.Color.AMBER, HighlightHelper.Linger.OFF);
                 
                 element.click();
                 
                 // 🔥 VISUAL DEBUG: Change to GREEN after successful click
-                if (VISUAL_DEBUG) {
-                    highlightElement(driver, element, "#00FF00", "3px"); // Green
-                    Thread.sleep(200); // Brief pause to see green highlight
-                    removeHighlight(driver, element);
-                }
+                HighlightHelper.highlight(driver, element, HighlightHelper.Color.GREEN, HighlightHelper.Linger.OFF);
                 
                 return true;
 
@@ -63,50 +57,21 @@ public class ElementHelper {
                     waitForDOMReady(driver);
                     WebElement element = locateElement(driver, wait, type, locatorValue);
                     
-                    // 🔥 VISUAL DEBUG: Highlight in ORANGE for JS fallback
-                    if (VISUAL_DEBUG) {
-                        highlightElement(driver, element, "#FF8C00", "3px"); // Dark Orange
-                        Thread.sleep(300);
-                    }
+                    HighlightHelper.highlight(driver, element, HighlightHelper.Color.AMBER, HighlightHelper.Linger.OFF);
                     
                     ((JavascriptExecutor) driver).executeScript("arguments[0].click();", element);
                     
-                    // 🔥 VISUAL DEBUG: Change to BLUE after successful JS click
-                    if (VISUAL_DEBUG) {
-                        highlightElement(driver, element, "#0000FF", "3px"); // Blue
-                        Thread.sleep(200);
-                        removeHighlight(driver, element);
-                    }
+                    HighlightHelper.highlight(driver, element, HighlightHelper.Color.BLUE, HighlightHelper.Linger.OFF);
                     
                     return true;
                 } catch (Exception jsException) {
-                    // 🔥 VISUAL DEBUG: Highlight failure in RED
-                    if (VISUAL_DEBUG) {
-                        try {
-                            WebElement failedElement = locateElement(driver, wait, type, locatorValue);
-                            highlightElement(driver, failedElement, "#FF0000", "4px"); // Red
-                            Thread.sleep(500);
-                            removeHighlight(driver, failedElement);
-                        } catch (Exception highlightEx) {
-                            // Ignore highlight errors
-                        }
-                    }
+                	WebElement element = locateElement(driver, wait, type, locatorValue);
+                	HighlightHelper.highlight(driver, element, HighlightHelper.Color.RED, HighlightHelper.Linger.OFF);
                 }
             }
         }
-
-        // 🔥 VISUAL DEBUG: Final failure in DARK RED
-        if (VISUAL_DEBUG) {
-            try {
-                WebElement finalElement = driver.findElement(getLocatorByType(type, locatorValue));
-                highlightElement(driver, finalElement, "#8B0000", "5px"); // Dark Red
-                Thread.sleep(800);
-                removeHighlight(driver, finalElement);
-                System.out.printf("💥 All attempts failed: %s='%s'%n", type, locatorValue);
-            } catch (Exception e) {
-                System.out.printf("💥 Element not found after all attempts: %s='%s'%n", type, locatorValue);
-            }
-        }
+        WebElement element = locateElement(driver, wait, type, locatorValue);
+        HighlightHelper.highlight(driver, element, HighlightHelper.Color.RED, HighlightHelper.Linger.OFF);
 
         if (screenshot == Screenshot.ON) {
         	ScreenshotHandler screenshotHandler = new ScreenshotHandler(driver);
@@ -114,45 +79,9 @@ public class ElementHelper {
         }
         return false;
     }
-
-    // 🔥 VISUAL DEBUGGING: Highlight methods
-    private static void highlightElement(WebDriver driver, WebElement element, String color, String thickness) {
-        try {
-            ((JavascriptExecutor) driver).executeScript(
-                "arguments[0].style.border = '" + thickness + " solid " + color + "';" +
-                "arguments[0].style.boxShadow = '0 0 8px " + color + "';" +
-                "arguments[0].style.zIndex = '9999';" +
-                "arguments[0].style.transition = 'border 0.2s ease';",
-                element
-            );
-        } catch (Exception e) {
-            // Silent fail for highlighting
-        }
-    }
     
-    private static void removeHighlight(WebDriver driver, WebElement element) {
-        try {
-            ((JavascriptExecutor) driver).executeScript(
-                "arguments[0].style.border = '';" +
-                "arguments[0].style.boxShadow = '';" +
-                "arguments[0].style.zIndex = '';" +
-                "arguments[0].style.transition = '';",
-                element
-            );
-        } catch (Exception e) {
-            // Ignore cleanup errors
-        }
-    }
-    
-    // Helper method to convert LocatorType to By
-    private static By getLocatorByType(LocatorType type, String value) {
-        switch (type) {
-            case ID: return By.id(value);
-            case CSS: return By.cssSelector(value);
-            case XPATH: return By.xpath(value);
-            case CLASS: return By.className(value);
-            default: throw new IllegalArgumentException("Unsupported type: " + type);
-        }
+    public static void clickButton(WebDriver driver, LocatorType type, String locatorValue) {
+    	clickButton(driver, type, locatorValue, Screenshot.OFF, 1);
     }
 
     public static void enterText(WebDriverWait wait, LocatorType type, String locatorValue, String text) {
@@ -197,15 +126,6 @@ public class ElementHelper {
         } catch (Exception e) {
             System.out.printf("Dropdown with ID '%s' not found or not clickable: %s%n", 
                 id, e.getMessage());
-        }
-    }
-
-    public static void clickButtonById(WebDriver driver, String id) {
-        try {
-            getShortWait(driver) // ✅ Use centralized short wait
-                    .until(ExpectedConditions.elementToBeClickable(By.id(id))).click();
-        } catch (Exception e) {
-            System.out.printf("Button with ID '%s' not found or not clickable.%n", id);
         }
     }
 
@@ -304,27 +224,32 @@ public class ElementHelper {
             WebDriverWait wait,
             LocatorType type,
             String locatorValue) {
-        switch (type) {
-            case ID:
-                return wait.until(ExpectedConditions.elementToBeClickable(By.id(locatorValue)));
-            case CSS:
-                return wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(locatorValue)));
-            case XPATH:
-                return wait.until(ExpectedConditions.elementToBeClickable(By.xpath(locatorValue)));
-            case CLASS:
-                return wait.until(ExpectedConditions.elementToBeClickable(By.className(locatorValue)));
-            case ACTIVE_CLASS:
-                List<WebElement> candidates = driver.findElements(By.className(locatorValue));
-                for (WebElement el : candidates) {
-                    if (el.isDisplayed() && el.isEnabled()
-                            && el.getDomAttribute("class").contains("active")) {
-                        return wait.until(ExpectedConditions.elementToBeClickable(el));
-                    }
+    	switch (type) {
+        case ID: return waitForClickable(wait, By.id(locatorValue));
+        case CSS: return waitForClickable(wait, By.cssSelector(locatorValue));
+        case XPATH: return waitForClickable(wait, By.xpath(locatorValue));
+        case CLASS: return waitForClickable(wait, By.className(locatorValue));
+
+    	case ACTIVE_CLASS:
+    		List<WebElement> candidates = driver.findElements(By.className(locatorValue));
+            for (WebElement el : candidates) {
+                if (el.isDisplayed() && el.isEnabled()
+                        && el.getDomAttribute("class").contains("active")) {
+                    return wait.until(ExpectedConditions.refreshed(
+                        ExpectedConditions.elementToBeClickable(el)
+                    ));
                 }
-                throw new NoSuchElementException("No active element found for class: " + locatorValue);
-            default:
-                throw new IllegalArgumentException("Unsupported locator type: " + type);
-        }
+            }
+            throw new NoSuchElementException("No active element found for class: " + locatorValue);
+        default:
+            throw new IllegalArgumentException("Unsupported locator type: " + type);
+    	}
+    }
+
+    private static WebElement waitForClickable(WebDriverWait wait, By locator) {
+        return wait.until(ExpectedConditions.refreshed(
+            ExpectedConditions.elementToBeClickable(locator)
+        ));
     }
     
     private static void waitForDOMReady(WebDriver driver) {

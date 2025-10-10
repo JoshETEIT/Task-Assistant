@@ -4,6 +4,8 @@ import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.*;
 import automation.helpers.CsvReader;
+import automation.helpers.ElementHelper.LocatorType;
+import automation.helpers.ElementHelper.Screenshot;
 import automation.ui.ProgressUI;
 
 import static automation.helpers.ElementHelper.*;
@@ -102,7 +104,7 @@ public class IronmongeryImportTask extends TaskBase {
                 }
                 
                 enterText(wait, LocatorType.ID, "part_cost", item.getCost());
-                clickButtonById(driver, "part_dialog_submit_new");
+                clickButton(driver, LocatorType.ID, "part_dialog_submit_new", Screenshot.ON, 3);
                 wait.until(ExpectedConditions.invisibilityOfElementLocated(
                     By.id("part_dialog_submit_new")));
                 ((JavascriptExecutor)driver).executeScript("window.scrollTo(0, 0)");
