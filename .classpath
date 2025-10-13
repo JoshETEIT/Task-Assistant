@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="src" path="src"/>
+	<classpathentry including="**/*.java" kind="src" output="target/classes" path="src">
+		<attributes>
+			<attribute name="optional" value="true"/>
+			<attribute name="maven.pomderived" value="true"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="lib" path="C:/Eclipse and testing/Web driver/webdrivermanager-6.1.0-fat.jar"/>
 	<classpathentry kind="lib" path="C:/Eclipse and testing/Selenium/selenium-java-4.31.0/auto-service-annotations-1.1.1.jar"/>
 	<classpathentry kind="lib" path="C:/Eclipse and testing/Selenium/selenium-java-4.31.0/auto-service-annotations-1.1.1-sources.jar"/>
@@ -75,12 +80,23 @@
 	<classpathentry kind="lib" path="C:/Eclipse and testing/Selenium/selenium-java-4.31.0/selenium-safari-driver-4.31.0-sources.jar"/>
 	<classpathentry kind="lib" path="C:/Eclipse and testing/Selenium/selenium-java-4.31.0/selenium-support-4.31.0.jar"/>
 	<classpathentry kind="lib" path="C:/Eclipse and testing/Selenium/selenium-java-4.31.0/selenium-support-4.31.0-sources.jar"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER">
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-21">
 		<attributes>
-			<attribute name="module" value="true"/>
+			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="lib" path="C:/Users/JoshHolden/Downloads/opencsv-5.7.1.jar"/>
 	<classpathentry kind="lib" path="C:/Users/JoshHolden/Downloads/jasypt-1.9.3.jar"/>
-	<classpathentry kind="output" path="bin"/>
+	<classpathentry excluding="**" kind="src" output="target/classes" path="resources">
+		<attributes>
+			<attribute name="maven.pomderived" value="true"/>
+			<attribute name="optional" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="con" path="org.eclipse.m2e.MAVEN2_CLASSPATH_CONTAINER">
+		<attributes>
+			<attribute name="maven.pomderived" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="output" path="target/classes"/>
 </classpath>
