@@ -35,8 +35,7 @@ public abstract class TaskBase implements AutomationTask {
         FileChooserHelper.showErrorDialog(errorMsg);
         
         new javax.swing.Timer(1500, evt -> {
-            progressUI.setVisible(false);
-            progressUI.resetProgress();
+            progressUI.close();
             ((javax.swing.Timer)evt.getSource()).stop();
         }).start();
     }
@@ -45,8 +44,7 @@ public abstract class TaskBase implements AutomationTask {
         progressUI.showCancellation();
         
         new javax.swing.Timer(500, e -> {
-            progressUI.setVisible(false);
-            progressUI.resetProgress();
+        	progressUI.close();
             ((javax.swing.Timer)e.getSource()).stop();
         }).start();
     }

@@ -25,6 +25,7 @@ public class TestSuite {
 
     public static void main(String[] args) {
         startApplication();
+        //testProgressUIVisibility();
     }
 
     public static void startApplication() {
@@ -117,8 +118,7 @@ public class TestSuite {
             }
             
             // Hide ProgressUI and return to main app
-            progressUI.setVisible(false);
-            progressUI.resetProgress();
+            progressUI.close();
             
             new javax.swing.Timer(1500, evt -> {
                 ((javax.swing.Timer)evt.getSource()).stop();

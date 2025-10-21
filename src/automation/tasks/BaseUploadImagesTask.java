@@ -56,13 +56,11 @@ public abstract class BaseUploadImagesTask extends TaskBase {
     
     protected String getImageFolderPath(ProgressUI progressUI) {
         try {
-            progressUI.setVisible(false);
             return AutomationUI.showDirectoryChooser(
                 null, 
                 "Select Images Directory for " + getPartTypeName()
             );
         } finally {
-            progressUI.setVisible(true);
         }
     }
     

@@ -10,6 +10,7 @@ public class ProgressUI {
 
     public void showProgress(String title, String initialMessage) {
         progressDialog = AutomationUI.createStyledDialog(title, 400, 200);
+        progressDialog.setModal(false);
         JPanel content = (JPanel)((JPanel)progressDialog.getContentPane()).getComponent(1);
         
         statusLabel = AutomationUI.createLabel(initialMessage);
@@ -69,6 +70,11 @@ public class ProgressUI {
     public void showCancellation() {
         updateStepProgress(100, "⏹ Task cancelled");
         updateStatus("Operation cancelled by user");
+        
+        new javax.swing.Timer(1000, e -> {
+        	close();
+            ((javax.swing.Timer)e.getSource()).stop();
+        }).start();
     }
     
     public void completeAndHide(String message) {
@@ -76,16 +82,9 @@ public class ProgressUI {
         updateStatus(message);
         
         new javax.swing.Timer(1000, e -> {
-            setVisible(false);
-            resetProgress();
+        	close();
             ((javax.swing.Timer)e.getSource()).stop();
         }).start();
-    }
-    
-    public void setVisible(boolean visible) {
-        if (progressDialog != null) {
-            progressDialog.setVisible(visible);
-        }
     }
 
     public void close() {

@@ -31,7 +31,6 @@ public class PageLoadTimeTask implements AutomationTask {
         activeDriver = driver;
         if (dialog == null) setupDialog();
         dialog.setVisible(true);
-        progressUI.setVisible(false);
     }
     
     private void setupDialog() {

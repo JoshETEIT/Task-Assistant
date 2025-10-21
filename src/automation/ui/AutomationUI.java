@@ -22,7 +22,7 @@ public class AutomationUI {
     public static final Font TITLE_FONT = new Font("Segoe UI", Font.BOLD, 16);
     public static final Font BODY_FONT = new Font("Segoe UI", Font.PLAIN, 14);
     public static final Font BUTTON_FONT = new Font("Segoe UI", Font.BOLD, 14);
-    
+
     private static File lastDirectory = new File(System.getProperty("user.dir"));
 
     static {
@@ -39,7 +39,7 @@ public class AutomationUI {
         JPanel titlePanel = new JPanel(new BorderLayout());
         titlePanel.setBackground(TITLE_BAR_COLOR);
         titlePanel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
-        
+
         final Point[] offset = new Point[1];
         titlePanel.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent e) {
@@ -55,37 +55,37 @@ public class AutomationUI {
                 }
             }
         });
-        
+
         String[] titleParts = fullTitle.split(" \\| ", 2);
         JPanel titleContent = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         titleContent.setOpaque(false);
-        
+
         JLabel part1 = new JLabel(titleParts[0]);
         part1.setFont(TITLE_FONT);
         part1.setForeground(Color.WHITE);
         titleContent.add(part1);
-        
+
         if (titleParts.length > 1) {
             JLabel separator = new JLabel(" | ");
             separator.setFont(TITLE_FONT);
             separator.setForeground(Color.WHITE);
             titleContent.add(separator);
-            
+
             JLabel part2 = new JLabel(titleParts[1]);
             part2.setFont(TITLE_FONT);
             part2.setForeground(PRIMARY_COLOR);
             titleContent.add(part2);
         }
-        
+
         titlePanel.add(titleContent, BorderLayout.CENTER);
-        
+
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
         buttonPanel.setOpaque(false);
-        
+
         MouseAdapter preventDrag = new MouseAdapter() {};
         buttonPanel.addMouseListener(preventDrag);
         buttonPanel.addMouseMotionListener(preventDrag);
-        
+
         if (!fullTitle.contains("Select Action")) {
             JLabel homeLabel = new JLabel("⌂");
             homeLabel.setFont(new Font("Arial", Font.BOLD, 18));
@@ -106,7 +106,7 @@ public class AutomationUI {
             });
             buttonPanel.add(homeLabel);
         }
-        
+
         JLabel closeLabel = new JLabel("×");
         closeLabel.setFont(new Font("Arial", Font.BOLD, 18));
         closeLabel.setForeground(TEXT_COLOR);
@@ -122,7 +122,7 @@ public class AutomationUI {
                 window.dispose();
             }
         });
-        
+
         buttonPanel.add(closeLabel);
         titlePanel.add(buttonPanel, BorderLayout.EAST);
         return titlePanel;
@@ -133,7 +133,7 @@ public class AutomationUI {
         JDialog dialog = new JDialog();
         dialog.setUndecorated(true);
         dialog.setBackground(new Color(0, 0, 0, 0));
-        
+
         JPanel bgPanel = new JPanel(new BorderLayout()) {
             @Override
             protected void paintComponent(Graphics g) {
@@ -146,17 +146,17 @@ public class AutomationUI {
         };
         bgPanel.setOpaque(false);
         bgPanel.add(createTitleBar(title, dialog), BorderLayout.NORTH);
-        
+
         JPanel contentPanel = new JPanel();
         contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
         contentPanel.setOpaque(false);
         contentPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         bgPanel.add(contentPanel, BorderLayout.CENTER);
-        
+
         dialog.setContentPane(bgPanel);
         dialog.setSize(width, height);
         dialog.setLocationRelativeTo(null);
-        
+
         return dialog;
     }
 
@@ -177,23 +177,23 @@ public class AutomationUI {
         button.setBorder(BorderFactory.createEmptyBorder(5, 15, 5, 15));
         return button;
     }
-    
+
     public static void showMessageDialog(Component parent, String message, String title, int messageType) {
         JDialog dialog = createStyledDialog(title, 400, 200);
         JPanel content = (JPanel)((JPanel)dialog.getContentPane()).getComponent(1);
-        
+
         JLabel messageLabel = createLabel(message);
         messageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         content.add(messageLabel);
-        
+
         JButton okButton = createButton("OK");
         okButton.addActionListener(e -> dialog.dispose());
-        
+
         JPanel buttonPanel = new JPanel();
         buttonPanel.setOpaque(false);
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 0, 0));
         buttonPanel.add(okButton);
-        
+
         content.add(buttonPanel);
         dialog.setModal(true);
         dialog.setVisible(true);
@@ -202,12 +202,12 @@ public class AutomationUI {
     public static String showInputDialog(Component parent, String message, String title) {
         JDialog dialog = createStyledDialog(title, 400, 200);
         JPanel content = (JPanel)((JPanel)dialog.getContentPane()).getComponent(1);
-        
+
         final String[] result = { null };
-        
+
         content.add(createLabel(message));
         content.add(Box.createVerticalStrut(10));
-        
+
         JTextField textField = new JTextField(20);
         textField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
         textField.setPreferredSize(new Dimension(300, 30));
@@ -216,21 +216,21 @@ public class AutomationUI {
         textField.setBackground(new Color(70, 90, 90));
         textField.setForeground(TEXT_COLOR);
         content.add(textField);
-        
+
         JPanel buttonPanel = new JPanel();
         buttonPanel.setOpaque(false);
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
-        
+
         JButton okButton = createButton("OK");
         okButton.addActionListener(e -> {
             result[0] = textField.getText();
             dialog.dispose();
         });
-        
+
         JButton cancelButton = createButton("Cancel");
         cancelButton.setBackground(new Color(100, 100, 100));
         cancelButton.addActionListener(e -> dialog.dispose());
-        
+
         buttonPanel.add(okButton);
         buttonPanel.add(Box.createHorizontalStrut(10));
         buttonPanel.add(cancelButton);

@@ -17,14 +17,12 @@ public class FileChooserHelper {
 
     private static String showChopper(ProgressUI progressUI, String fileType, boolean isFile) {
         try {
-            progressUI.setVisible(false);
             String title = DEFAULT_TITLE_PREFIX + fileType + (isFile ? " File" : " Directory");
             
             return isFile 
                 ? AutomationUI.showFileChooser(null, title)
                 : AutomationUI.showDirectoryChooser(null, title);
         } finally {
-            progressUI.setVisible(true);
         }
     }
 
