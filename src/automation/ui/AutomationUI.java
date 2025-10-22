@@ -100,6 +100,7 @@ public class AutomationUI {
                     homeLabel.setForeground(TEXT_COLOR);
                 }
                 public void mouseClicked(MouseEvent e) {
+                	TestSuite.cancelCurrentTask();
                     window.dispose();
                     TestSuite.startApplication();
                 }
@@ -119,6 +120,7 @@ public class AutomationUI {
                 closeLabel.setForeground(TEXT_COLOR);
             }
             public void mouseClicked(MouseEvent e) {
+            	TestSuite.cancelCurrentTask();
                 window.dispose();
             }
         });

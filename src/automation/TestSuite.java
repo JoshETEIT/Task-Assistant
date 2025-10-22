@@ -22,6 +22,9 @@ import javax.swing.*;
 public class TestSuite {
     private static final ServerManager serverManager = new ServerManager();
     private static ProgressUI progressUI;
+    private static WebDriver currentDriver;
+    private static Thread currentTaskThread;
+    private static volatile boolean taskCancelled = false;
 
     public static void main(String[] args) {
         startApplication();
@@ -49,7 +52,9 @@ public class TestSuite {
     }
 
     public static void runSeleniumTest(ServerManager.Server server, String taskName) {
-    	progressUI = new ProgressUI();
+        // Create NEW ProgressUI instance for each task
+        progressUI = new ProgressUI();
+        
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--incognito",
                            "--disable-save-password-bubble",
@@ -60,71 +65,127 @@ public class TestSuite {
         
         WebDriverManager.chromedriver().setup();
         
-        try {
-            // Initialize progress UI
-            progressUI.startTask(taskName); // This shows and resets progress
-            progressUI.updateStatus("Launching browser");
-            
-            // Navigate to server and login
-            driver.get(server.getUrl());
-            driver.manage().window().maximize();
-            
-            // Login
-            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-            wait.until(ExpectedConditions.elementToBeClickable(By.id("login_user_name")))
-                .sendKeys(server.getUsername());
-            wait.until(ExpectedConditions.elementToBeClickable(By.id("login_password")))
-                .sendKeys(server.getPassword());
-            wait.until(ExpectedConditions.elementToBeClickable(By.id("submit_button")))
-                .click();
-            
-            progressUI.updateStatus("Logged in. Running task...");
-            
-            // Execute the selected task
-            AutomationTask task = TaskRegistry.getTask(taskName);
-            if (task != null) {
-                task.execute(driver, server.getUrl(), progressUI);
-                
-                // Handle task completion based on task type
-                if (!(task instanceof PageLoadTimeTask)) {
-                    // For regular tasks: quit driver and return to main app
-                    driver.quit();
-                    
-                    // ProgressUI will be hidden by the task's completeAndHide method
-                    // Return to main application after a brief delay
-                    new javax.swing.Timer(1000, e -> {
-                        ((javax.swing.Timer)e.getSource()).stop();
-                        SwingUtilities.invokeLater(TestSuite::startApplication);
-                    }).start();
-                }
-                // PageLoadTimeTask manages its own UI and ProgressUI visibility
-            } else {
-                throw new IllegalArgumentException("Unknown task: " + taskName);
-            }
-        } catch (Exception e) {
-            // Error handling - ensure ProgressUI is properly reset
-            progressUI.updateStepProgress(100, "❌ Failed: " + e.getMessage());
-            AutomationUI.showMessageDialog(
-                null, 
-                "Error during execution: " + e.getMessage(), 
-                "Task Failed", 
-                JOptionPane.ERROR_MESSAGE
-            );
-            
-            // Clean up on error
+        // Create a separate thread for the task
+        Thread taskThread = new Thread(() -> {
             try {
-                driver.quit();
-            } catch (Exception ex) {
-                // Ignore cleanup errors
+                // Register this task with the task manager
+                TestSuite.setCurrentTask(Thread.currentThread(), driver, progressUI);
+                
+                // Initialize progress UI
+                progressUI.startTask(taskName);
+                progressUI.updateStatus("Launching browser");
+                
+                // Navigate to server and login
+                driver.get(server.getUrl());
+                driver.manage().window().maximize();
+                
+                // Check for cancellation
+                if (TestSuite.isTaskCancelled()) {
+                    return;
+                }
+                
+                // Login
+                WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+                wait.until(ExpectedConditions.elementToBeClickable(By.id("login_user_name")))
+                    .sendKeys(server.getUsername());
+                wait.until(ExpectedConditions.elementToBeClickable(By.id("login_password")))
+                    .sendKeys(server.getPassword());
+                wait.until(ExpectedConditions.elementToBeClickable(By.id("submit_button")))
+                    .click();
+                
+                progressUI.updateStatus("Logged in. Running task...");
+                
+                // Check for cancellation
+                if (TestSuite.isTaskCancelled()) {
+                    return;
+                }
+                
+                // Execute the selected task
+                AutomationTask task = TaskRegistry.getTask(taskName);
+                if (task != null) {
+                    task.execute(driver, server.getUrl(), progressUI);
+                    
+                    // Handle task completion based on task type
+                 // Only return to main menu for successfully completed regular tasks
+                    if (!(task instanceof PageLoadTimeTask) && !TestSuite.isTaskCancelled()) {
+                        SwingUtilities.invokeLater(() -> {
+                            new javax.swing.Timer(1000, e -> {
+                                ((javax.swing.Timer)e.getSource()).stop();
+                                TestSuite.startApplication();
+                            }).start();
+                        });
+                    }
+
+                    TestSuite.clearCurrentTask();
+                    // PageLoadTimeTask manages its own UI and ProgressUI visibility
+                } else {
+                    throw new IllegalArgumentException("Unknown task: " + taskName);
+                }
+            } catch (Exception e) {
+                System.out.println("❌ Exception during task execution: " + e.getMessage());
+                
+                if (TestSuite.isTaskCancelled()) {
+                    // USER CANCELLATION
+                    System.out.println("✅ Task cancelled by user");
+                    if (progressUI != null) {
+                        progressUI.showCancellation();
+                    }
+                } else {
+                    // REAL ERROR - but we don't close the browser
+                    System.out.println("❌ Real error occurred - browser remains open for inspection");
+                    if (progressUI != null) {
+                        progressUI.updateStepProgress(100, "❌ Failed: " + e.getMessage());
+                        AutomationUI.showMessageDialog(
+                            null, 
+                            "Error during execution: " + e.getMessage(), 
+                            "Task Failed", 
+                            JOptionPane.ERROR_MESSAGE
+                        );
+                    }
+                }
+                
+                // NEVER call driver.quit() - browser stays open regardless
+                TestSuite.clearCurrentTask();
+                
+                // Progress UI will handle its own closing via showCancellation() or the error above
             }
-            
-            // Hide ProgressUI and return to main app
-            progressUI.close();
-            
-            new javax.swing.Timer(1500, evt -> {
-                ((javax.swing.Timer)evt.getSource()).stop();
-                SwingUtilities.invokeLater(TestSuite::startApplication);
-            }).start();
-        } 
+        });
+        
+        taskThread.start();
+    }
+    
+    // Consider moving to a task manager helper
+    public static void setCurrentTask(Thread taskThread, WebDriver driver, ProgressUI ui) {
+        currentTaskThread = taskThread;
+        currentDriver = driver;
+        progressUI = ui;
+        taskCancelled = false;
+    }
+    
+    public static void cancelCurrentTask() {
+        taskCancelled = true;
+        System.out.println("🚫 Task cancellation requested by user");
+        
+        if (currentTaskThread != null && currentTaskThread.isAlive()) {
+            System.out.println("🛑 Interrupting task thread: " + currentTaskThread.getName());
+            currentTaskThread.interrupt();
+        }
+        
+        if (progressUI != null) {
+            progressUI.showCancellation();
+        }
+        
+        System.out.println("💡 Cancellation flag set - browser will remain open");
+    }
+    
+    public static boolean isTaskCancelled() {
+        return taskCancelled;
+    }
+    
+    public static void clearCurrentTask() {
+        currentTaskThread = null;
+        currentDriver = null;
+        progressUI = null;
+        taskCancelled = false;
     }
 }
