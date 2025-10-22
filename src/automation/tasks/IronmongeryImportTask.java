@@ -21,15 +21,14 @@ public class IronmongeryImportTask extends TaskBase {
     
     @Override
     public void execute(WebDriver driver, String baseUrl, ProgressUI progressUI) {
-        initializeProgress(progressUI, 1); // Will be updated when we know item count
         
         try {
-            progressUI.updateStatus("Selecting CSV file...");
             String csvPath = getFile(progressUI, "Ironmongery CSV");
             if (csvPath == null) {
                 cancelAndHide(progressUI);
                 return;
             }
+            initializeProgress(progressUI, 1);
 
             progressUI.updateStatus("Reading CSV...");
             List<IronmongeryItem> items = CsvReader.read(csvPath, this::createItem);

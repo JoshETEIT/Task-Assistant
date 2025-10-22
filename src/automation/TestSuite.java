@@ -21,7 +21,7 @@ import javax.swing.*;
 
 public class TestSuite {
     private static final ServerManager serverManager = new ServerManager();
-    private static final ProgressUI progressUI = new ProgressUI();
+    private static ProgressUI progressUI;
 
     public static void main(String[] args) {
         startApplication();
@@ -49,6 +49,7 @@ public class TestSuite {
     }
 
     public static void runSeleniumTest(ServerManager.Server server, String taskName) {
+    	progressUI = new ProgressUI();
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--incognito",
                            "--disable-save-password-bubble",
