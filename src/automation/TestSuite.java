@@ -22,7 +22,6 @@ import javax.swing.*;
 public class TestSuite {
     private static final ServerManager serverManager = new ServerManager();
     private static ProgressUI progressUI;
-    private static WebDriver currentDriver;
     private static Thread currentTaskThread;
     private static volatile boolean taskCancelled = false;
 
