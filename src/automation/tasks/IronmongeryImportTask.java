@@ -3,6 +3,8 @@ package automation.tasks;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.*;
+
+import automation.TestSuite;
 import automation.helpers.CsvReader;
 import automation.helpers.ElementHelper.LocatorType;
 import automation.helpers.ElementHelper.Screenshot;
@@ -11,6 +13,7 @@ import automation.ui.ProgressUI;
 import static automation.helpers.ElementHelper.*;
 import java.time.Duration;
 import java.util.List;
+import java.util.Set;
 
 public class IronmongeryImportTask extends TaskBase {
     
@@ -28,16 +31,41 @@ public class IronmongeryImportTask extends TaskBase {
                 cancelAndHide(progressUI);
                 return;
             }
-            initializeProgress(progressUI, 1);
+            //initializeProgress(progressUI, 1);
 
             progressUI.updateStatus("Reading CSV...");
             List<IronmongeryItem> items = CsvReader.read(csvPath, this::createItem);
             
-            progressUI.updateStatus("Importing items...");
-            progressUI.setMainProgressMax(items.size());
-            performImport(items, driver, baseUrl, progressUI);
+            progressUI.updateStatus("Checking for existing parts...");
             
-            completeAndHide(progressUI, "Import completed");
+            // Navigate to the parts list first to check existing parts
+            driver.get(baseUrl + "/PricingAndConfig/PartList/IM");
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
+            wait.until(d -> ((JavascriptExecutor) d)
+            	    .executeScript("return document.readyState").equals("complete"));
+            	Thread.sleep(1000);
+            
+            // Get existing part numbers using only part_no attribute
+            Set<String> existingPartNumbers = getAllPartNumbers(driver);
+            progressUI.updateStatus("Found " + existingPartNumbers.size() + " existing parts");
+            
+            // Filter out items that already exist
+            List<IronmongeryItem> itemsToImport = items.stream()
+                .filter(item -> !existingPartNumbers.contains(item.getPartNo()))
+                .toList();
+            
+            if (itemsToImport.isEmpty()) {
+                progressUI.updateStatus("All parts already exist - nothing to import");
+                completeAndHide(progressUI, "No new parts to import");
+                return;
+            }
+            
+            int skippedCount = items.size() - itemsToImport.size();
+            progressUI.updateStatus("Importing " + itemsToImport.size() + " new items (" + skippedCount + " already exist)...");
+            progressUI.setMainProgressMax(itemsToImport.size());
+            performImport(itemsToImport, driver, baseUrl, progressUI, skippedCount);
+            
+            completeAndHide(progressUI, "Import completed - " + itemsToImport.size() + " new parts added (" + skippedCount + " skipped)");
         } catch (Exception e) {
             handleError(progressUI, e);
         }
@@ -74,22 +102,20 @@ public class IronmongeryImportTask extends TaskBase {
     }
 
     private void performImport(List<IronmongeryItem> items, WebDriver driver, 
-                             String baseUrl, ProgressUI progressUI) {
+                             String baseUrl, ProgressUI progressUI, int skippedCount) {
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
         Actions actions = new Actions(driver);
         
-        driver.get(baseUrl + "/PricingAndConfig/PartList/IM");
-        
-        for (int i = 0; i < items.size(); i++) {
+        for (int i = 0; i < items.size() && !TestSuite.isTaskCancelled(); i++) {
             IronmongeryItem item = items.get(i);
             progressUI.updateMainProgress(i);
-            progressUI.updateStepProgress(0, "Processing " + item.getPartNo());
+            progressUI.updateStepProgress(0, "Processing " + item.getPartNo() + " (" + (i+1) + "/" + items.size() + ")");
             
             try {
+            	Thread.sleep(500);
+            	checkCancellation();
                 ((JavascriptExecutor)driver).executeScript("window.scrollTo(0, 0)");
-                WebElement addButton = wait.until(
-                    ExpectedConditions.elementToBeClickable(By.id("add_part_button")));
-                addButton.click();
+                clickButton(driver, LocatorType.ID, "add_part_button", Screenshot.ON, 3);
                 
                 enterText(wait, LocatorType.ID, "part_no", item.getPartNo());
                 enterText(wait, LocatorType.ID, "part_name", item.getName());
@@ -103,6 +129,7 @@ public class IronmongeryImportTask extends TaskBase {
                 }
                 
                 enterText(wait, LocatorType.ID, "part_cost", item.getCost());
+                checkCancellation();
                 clickButton(driver, LocatorType.ID, "part_dialog_submit_new", Screenshot.ON, 3);
                 wait.until(ExpectedConditions.invisibilityOfElementLocated(
                     By.id("part_dialog_submit_new")));
@@ -122,5 +149,8 @@ public class IronmongeryImportTask extends TaskBase {
                 }
             }
         }
+        
+        // Update progress with summary
+        progressUI.updateStatus("Import complete: " + items.size() + " new parts added (" + skippedCount + " already existed)");
     }
 }

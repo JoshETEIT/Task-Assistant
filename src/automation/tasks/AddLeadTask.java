@@ -5,6 +5,7 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import automation.ui.ProgressUI;
+import automation.TestSuite;
 import automation.helpers.ScreenshotHandler;
 import automation.ui.AutomationUI;
 import javax.swing.*;
@@ -12,7 +13,7 @@ import javax.swing.*;
 import java.time.Duration;
 import static automation.helpers.ElementHelper.*;
 
-public class AddLeadTask implements AutomationTask {
+public class AddLeadTask extends TaskBase {
     
     @Override
     public String getName() {
@@ -65,7 +66,7 @@ public class AddLeadTask implements AutomationTask {
             progressUI.setMainProgressMax(leadCount);
             progressUI.setStepProgressMax(100);
             
-            for (int i = 0; i < leadCount; i++) {
+            for (int i = 0; i < leadCount && !TestSuite.isTaskCancelled(); i++) {
                 progressUI.updateMainProgress(i);
                 progressUI.updateStatus("Adding lead " + (i+1) + "/" + leadCount);
                 progressUI.updateStepProgress(0, "Starting new lead");
@@ -115,6 +116,7 @@ public class AddLeadTask implements AutomationTask {
             wait.until(ExpectedConditions.urlContains("/Home"));
             
             progressUI.updateStepProgress(10, "Clicking Add New Lead");
+            checkCancellation();
             clickButton(driver, LocatorType.XPATH, "//a[.//span[normalize-space(text())='Add New Lead']]", Screenshot.ON, 3);
             
             progressUI.updateStepProgress(15, "Filling basic fields");
@@ -128,6 +130,7 @@ public class AddLeadTask implements AutomationTask {
             driver.findElement(By.tagName("body")).click();
             
             progressUI.updateStepProgress(30, "Creating new contact");
+            checkCancellation();
             clickButton(driver, LocatorType.ID, "coloured_button_new_contact", Screenshot.ON, 3);
             selectCheckboxOrRadioButton(driver, "customer");
             selectCheckboxOrRadioButton(driver, "main_contact");
@@ -152,15 +155,14 @@ public class AddLeadTask implements AutomationTask {
             progressUI.updateStepProgress(60, "Adding phone number");
             enterText(wait, LocatorType.CLASS, "dynamic_contact_input", "000-000-0000");
             progressUI.updateStepProgress(70, "Saving contact");
+            checkCancellation();
             clickButton(driver, LocatorType.ID, "coloured_button_create_box", Screenshot.ON, 3);
             
             progressUI.updateStepProgress(80, "Adding address");
             // Simple retry - just call the method again if it fails
             
-            if (!clickButton(driver, LocatorType.ID, "coloured_button_new_address", Screenshot.ON, 3)) {
-                progressUI.updateStepProgress(100, "❌ Failed to add address");
-                return false;
-            }
+            checkCancellation();
+            clickButton(driver, LocatorType.ID, "coloured_button_new_address", Screenshot.ON, 3);
             
             progressUI.updateStepProgress(85, "Filling address");
             enterText(wait, LocatorType.ID, "address_line_1", "123 Fake Street");
@@ -171,6 +173,7 @@ public class AddLeadTask implements AutomationTask {
             enterText(wait, LocatorType.ID, "postcode", "FK12 3AB");
             
             progressUI.updateStepProgress(95, "Saving address");
+            checkCancellation();
             clickButton(driver, LocatorType.ID, "coloured_button_create_box", Screenshot.ON, 3);
             clickButton(driver, LocatorType.ID, "convert_to_real_lead_button", Screenshot.ON, 3);
             

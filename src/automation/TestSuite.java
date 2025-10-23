@@ -156,7 +156,6 @@ public class TestSuite {
     // Consider moving to a task manager helper
     public static void setCurrentTask(Thread taskThread, WebDriver driver, ProgressUI ui) {
         currentTaskThread = taskThread;
-        currentDriver = driver;
         progressUI = ui;
         taskCancelled = false;
     }
@@ -183,7 +182,6 @@ public class TestSuite {
     
     public static void clearCurrentTask() {
         currentTaskThread = null;
-        currentDriver = null;
         progressUI = null;
         taskCancelled = false;
     }

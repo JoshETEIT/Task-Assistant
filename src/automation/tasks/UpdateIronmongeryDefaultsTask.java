@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.swing.*;
 
-public class UpdateIronmongeryDefaultsTask implements AutomationTask {
+public class UpdateIronmongeryDefaultsTask extends TaskBase {
     
     @Override
     public String getName() {
@@ -190,6 +190,7 @@ public class UpdateIronmongeryDefaultsTask implements AutomationTask {
         ProgressTracker progress = new ProgressTracker(progressUI, true);
 
         try {
+        	checkCancellation();
             progress.updateProgress(10, "Opening template");
             WebElement ironmongeryNode = wait.until(ExpectedConditions.elementToBeClickable(
                 By.xpath("//span[@class='tree-text' and contains(text(),'Finish & Ironmongery')]")));
@@ -214,6 +215,7 @@ public class UpdateIronmongeryDefaultsTask implements AutomationTask {
                 By.cssSelector("div.ui-dialog")));
             
             progress.updateProgress(50, "Applying defaults");
+            checkCancellation();
             WebElement defaultButton = modal.findElement(
                 By.xpath(".//button[@name='default_button' and contains(@class, 'side_button')]"));
             interaction.performAction(defaultButton, "click");
@@ -226,12 +228,14 @@ public class UpdateIronmongeryDefaultsTask implements AutomationTask {
             });
 
             progress.updateProgress(70, "Confirming changes");
+            checkCancellation();
             WebElement okButton = modal.findElement(
                 By.xpath(".//button[@name='ok_button' and contains(@class, 'side_button')]"));
             interaction.performAction(okButton, "click");
             interaction.markCompleted(okButton);
             
             progress.updateProgress(80, "Saving template");
+            checkCancellation();
             WebElement saveButton = wait.until(ExpectedConditions.elementToBeClickable(
                 By.xpath(".//button[contains(@class,'drawing-board-button') and contains(.,'Save Drawing')]")));
             interaction.performAction(saveButton, "click");

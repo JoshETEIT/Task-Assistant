@@ -3,12 +3,15 @@ package automation.tasks;
 import org.openqa.selenium.*;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.*;
+
+import automation.TestSuite;
 import automation.helpers.CsvReader;
 import automation.ui.ProgressUI;
 
 import static automation.helpers.ElementHelper.*;
-import java.util.List;
 import java.time.Duration;
+import java.util.List;
+import java.util.Set;
 
 public class GlassPartImportTask extends TaskBase {
     
@@ -19,24 +22,48 @@ public class GlassPartImportTask extends TaskBase {
     
     @Override
     public void execute(WebDriver driver, String baseUrl, ProgressUI progressUI) {
-        initializeProgress(progressUI, 1); // Will be updated when we know item count
         
         try {
-            progressUI.updateStatus("Selecting CSV file...");
             String csvPath = getFile(progressUI, "Glass Parts CSV");
             if (csvPath == null) {
-            	cancelAndHide(progressUI);
+                cancelAndHide(progressUI);
                 return;
             }
+            //initializeProgress(progressUI, 1);
 
             progressUI.updateStatus("Reading CSV...");
             List<GlassPartItem> items = CsvReader.read(csvPath, this::createItem);
             
-            progressUI.updateStatus("Importing items...");
-            progressUI.setMainProgressMax(items.size());
-            performImport(items, driver, baseUrl, progressUI);
+            progressUI.updateStatus("Checking for existing parts...");
             
-            completeAndHide(progressUI, "Import completed");
+            // Navigate to the parts list first to check existing parts
+            driver.get(baseUrl + "/PricingAndConfig/PartList/GL");
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
+            wait.until(d -> ((JavascriptExecutor) d)
+            	    .executeScript("return document.readyState").equals("complete"));
+            	Thread.sleep(1000);
+            
+            // Get existing part numbers using only part_no attribute
+            Set<String> existingPartNumbers = getAllPartNumbers(driver);
+            progressUI.updateStatus("Found " + existingPartNumbers.size() + " existing parts");
+            
+            // Filter out items that already exist
+            List<GlassPartItem> itemsToImport = items.stream()
+                .filter(item -> !existingPartNumbers.contains(item.getPartNo()))
+                .toList();
+            
+            if (itemsToImport.isEmpty()) {
+                progressUI.updateStatus("All parts already exist - nothing to import");
+                completeAndHide(progressUI, "No new parts to import");
+                return;
+            }
+            
+            int skippedCount = items.size() - itemsToImport.size();
+            progressUI.updateStatus("Importing " + itemsToImport.size() + " new items (" + skippedCount + " already exist)...");
+            progressUI.setMainProgressMax(itemsToImport.size());
+            performImport(itemsToImport, driver, baseUrl, progressUI, skippedCount);
+            
+            completeAndHide(progressUI, "Import completed - " + itemsToImport.size() + " new parts added (" + skippedCount + " skipped)");
         } catch (Exception e) {
             handleError(progressUI, e);
         }
@@ -68,7 +95,7 @@ public class GlassPartImportTask extends TaskBase {
     }
 
     private void performImport(List<GlassPartItem> items, WebDriver driver, 
-                            String baseUrl, ProgressUI progressUI) {
+                            String baseUrl, ProgressUI progressUI, int skippedCount) {
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
         Actions actions = new Actions(driver);
         
@@ -76,14 +103,16 @@ public class GlassPartImportTask extends TaskBase {
         wait.until(ExpectedConditions.urlContains("/PricingAndConfig/PartList/GL"));
         wait.until(ExpectedConditions.presenceOfElementLocated(By.id("add_part_button")));
         
-        for (int i = 0; i < items.size(); i++) {
+        for (int i = 0; i < items.size() && !TestSuite.isTaskCancelled(); i++) {
             GlassPartItem item = items.get(i);
             progressUI.updateMainProgress(i);
-            progressUI.updateStepProgress(0, "Processing " + item.getPartNo());
+            progressUI.updateStepProgress(0, "Processing " + item.getPartNo() + " (" + (i+1) + "/" + items.size() + ")");
             
             try {
+            	checkCancellation();
+            	Thread.sleep(500);
                 ((JavascriptExecutor)driver).executeScript("window.scrollTo(0, 0)");
-                clickAddPartButtonWithRetry(driver, wait);
+                clickButton(driver, LocatorType.ID, "add_part_button", Screenshot.ON, 3);
                 
                 enterText(wait, LocatorType.ID, "part_no", item.getPartNo());
                 enterText(wait, LocatorType.ID, "part_name", item.getPartName());
@@ -96,9 +125,8 @@ public class GlassPartImportTask extends TaskBase {
                     selectCheckboxOrRadioButton(driver, "part_is_obscure_glass");
                 }
 
-                WebElement submitButton = wait.until(
-                    ExpectedConditions.presenceOfElementLocated(By.id("part_dialog_submit_new")));
-                ((JavascriptExecutor)driver).executeScript("arguments[0].click();", submitButton);
+                checkCancellation();
+                clickButton(driver, LocatorType.ID, "part_dialog_submit_new", Screenshot.ON, 3);
                 
                 wait.until(ExpectedConditions.invisibilityOfElementLocated(
                     By.id("part_dialog_submit_new")));
@@ -108,7 +136,7 @@ public class GlassPartImportTask extends TaskBase {
                 progressUI.updateStepProgress(100, "✅ Part added");
             } catch (Exception e) {
                 progressUI.updateStepProgress(100, "❌ Failed: " + e.getMessage());
-                System.out.println("Error adding part " + item.getPartNo() + ": " + e.getMessage());
+                System.out.println("Error adding glass part " + item.getPartNo() + ": " + e.getMessage());
                 
                 try {
                     WebElement closeButton = driver.findElement(By.cssSelector(".ui-dialog-titlebar-close"));
@@ -118,28 +146,8 @@ public class GlassPartImportTask extends TaskBase {
                 }
             }
         }
-    }
-    
-    private void clickAddPartButtonWithRetry(WebDriver driver, WebDriverWait wait) {
-        int attempts = 0;
-        while (attempts < 3) {
-            try {
-                WebElement addButton = wait.until(
-                    ExpectedConditions.presenceOfElementLocated(By.id("add_part_button")));
-                ((JavascriptExecutor)driver).executeScript(
-                    "arguments[0].scrollIntoView({behavior:'instant',block:'center'});", 
-                    addButton);
-                ((JavascriptExecutor)driver).executeScript("arguments[0].click();", addButton);
-                wait.until(ExpectedConditions.presenceOfElementLocated(
-                    By.id("part_dialog_submit_new")));
-                return;
-            } catch (Exception e) {
-                attempts++;
-                if (attempts == 3) throw e;
-                ((JavascriptExecutor)driver).executeScript("window.scrollTo(0, 0)");
-                driver.navigate().refresh();
-                wait.until(ExpectedConditions.presenceOfElementLocated(By.id("add_part_button")));
-            }
-        }
+        
+        // Update progress with summary
+        progressUI.updateStatus("Import complete: " + items.size() + " new glass parts added (" + skippedCount + " already existed)");
     }
 }

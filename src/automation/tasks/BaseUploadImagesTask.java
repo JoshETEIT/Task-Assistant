@@ -2,6 +2,8 @@ package automation.tasks;
 
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.*;
+
+import automation.TestSuite;
 import automation.ui.AutomationUI;
 import automation.ui.ProgressUI;
 
@@ -31,7 +33,7 @@ public abstract class BaseUploadImagesTask extends TaskBase {
         this.wait = new WebDriverWait(driver, Duration.ofSeconds(20));
         
         try {
-            initializeProgress(progressUI, 1); // Will be updated when we know part count
+            //initializeProgress(progressUI, 1); // Will be updated when we know part count
             
             String folderPath = getDirectory(progressUI, getPartTypeName() + " Images");
             if (folderPath == null) {
@@ -95,7 +97,8 @@ public abstract class BaseUploadImagesTask extends TaskBase {
         
         int processed = 0, skipped = 0, failed = 0;
         
-        for (int i = 0; i < partRows.size(); i++) {
+        for (int i = 0; i < partRows.size() && !TestSuite.isTaskCancelled(); i++) {
+        	checkCancellation();
             WebElement row = partRows.get(i);
             progressUI.updateMainProgress(i);
             progressUI.updateStepProgress(0, "Starting part " + (i+1));
@@ -121,6 +124,7 @@ public abstract class BaseUploadImagesTask extends TaskBase {
     
     protected boolean processPartRow(WebElement partRow, List<File> imageFiles) 
             throws Exception {
+    	checkCancellation();
         // Check for existing image
         progressUI.updateStepProgress(10, "Checking existing image");
         if (hasExistingImage(partRow)) {
@@ -143,6 +147,7 @@ public abstract class BaseUploadImagesTask extends TaskBase {
         
         // Upload image
         progressUI.updateStepProgress(60, "Uploading image");
+        checkCancellation();
         uploadImage(partRow, matchingImage.get());
         highlightRow(partRow, "green");
         

@@ -15,6 +15,8 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 
 import automation.helpers.CsvReader;
 import automation.helpers.ElementHelper;
+import automation.helpers.ElementHelper.LocatorType;
+import automation.helpers.ElementHelper.Screenshot;
 import automation.helpers.FileChooserHelper;
 import automation.ui.ProgressUI;
 
@@ -57,13 +59,7 @@ public class TimberCuttingListTask extends TaskBase {
         	driver.switchTo().defaultContent();
 
         	try {
-        	    WebElement createBtn = new WebDriverWait(driver, Duration.ofSeconds(15))
-        	        .until(ExpectedConditions.elementToBeClickable(
-        	            By.xpath("//div[@class='highlighted-button']//button[span[contains(.,'Create new TCL rule')]]")
-        	        ));
-        	    try { Thread.sleep(2000); } catch (InterruptedException ignored) {}
-        	    
-        	    createBtn.click();
+        		automation.helpers.ElementHelper.clickButton(driver, LocatorType.XPATH, "//div[@class='highlighted-button']//button[span[contains(.,'Create new TCL rule')]]", Screenshot.ON, 3);
         	} catch (TimeoutException e) {
         	    System.out.println("Timed out waiting for 'Create new TCL rule' button");
         	}
@@ -91,6 +87,7 @@ public class TimberCuttingListTask extends TaskBase {
     }
 
     private void fillForm(WebDriver driver, WebDriverWait wait, Map<String, String> row) {
+    	checkCancellation();
 
         // CodeMirror fields        
         ElementHelper.selectDropdownByLabel(driver, "Group", row.get("Group"));
@@ -151,11 +148,8 @@ public class TimberCuttingListTask extends TaskBase {
 
         // Click "Create New Rule" button
         try {
-            WebElement createRuleBtn = wait.until(ExpectedConditions.elementToBeClickable(
-                By.xpath("//div[contains(@class,'highlighted-button')]//button[span[contains(normalize-space(.),'Create New Rule')]]")
-            ));
-            try { Thread.sleep(500); } catch (InterruptedException ignored) {} // extra wait for safety
-            createRuleBtn.click();
+        	checkCancellation();
+        	automation.helpers.ElementHelper.clickButton(driver, LocatorType.XPATH, "//div[contains(@class,'highlighted-button')]//button[span[contains(normalize-space(.),'Create New Rule')]]", Screenshot.ON, 3);
         } catch (TimeoutException e) {
             System.out.println("Timed out waiting for 'Create New Rule' button");
         }
