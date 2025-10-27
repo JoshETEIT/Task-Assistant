@@ -161,7 +161,6 @@ public class ElementHelper {
                 "arguments[0].querySelector('.CodeMirror').CodeMirror.setValue(arguments[1]);",
                 editorContainer, value
             );
-            System.out.printf("Set CodeMirror field '%s' to '%s'%n", labelText, value);
         } catch (Exception e) {
             System.out.printf("Unable to set CodeMirror for '%s': %s%n", labelText, e.getMessage());
         }
@@ -203,7 +202,6 @@ public class ElementHelper {
             WebElement dropdown = getShortWait(driver)
                     .until(ExpectedConditions.elementToBeClickable(By.xpath(xpath)));
             new Select(dropdown).selectByVisibleText(optionText);
-            System.out.printf("Dropdown '%s' set to '%s'%n", labelText, optionText);
         } catch (Exception e) {
             System.out.printf("Dropdown '%s' not found: %s%n", labelText, e.getMessage());
         }

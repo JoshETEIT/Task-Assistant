@@ -16,6 +16,9 @@ public class TaskRegistry {
         register(new UpdateIronmongeryDefaultsTask());
         register(new PageLoadTimeTask());
         register(new TimberCuttingListTask());
+        register(new PriceFileRuleRemover());
+        register(new PriceFileRuleAdder());
+        register(new PropertyVisibilityImportTask());
     }
     
     public static void register(AutomationTask task) {

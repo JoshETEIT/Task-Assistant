@@ -26,11 +26,8 @@ public class IronmongeryImportTask extends TaskBase {
     public void execute(WebDriver driver, String baseUrl, ProgressUI progressUI) {
         
         try {
-            String csvPath = getFile(progressUI, "Ironmongery CSV");
-            if (csvPath == null) {
-                cancelAndHide(progressUI);
-                return;
-            }
+        	String csvPath = getCsvFile(progressUI, "Ironmongery");
+        	if (csvPath == null) return;
             //initializeProgress(progressUI, 1);
 
             progressUI.updateStatus("Reading CSV...");

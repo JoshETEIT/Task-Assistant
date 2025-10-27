@@ -24,12 +24,8 @@ public class GlassPartImportTask extends TaskBase {
     public void execute(WebDriver driver, String baseUrl, ProgressUI progressUI) {
         
         try {
-            String csvPath = getFile(progressUI, "Glass Parts CSV");
-            if (csvPath == null) {
-                cancelAndHide(progressUI);
-                return;
-            }
-            //initializeProgress(progressUI, 1);
+        	String csvPath = getCsvFile(progressUI, "Glass Parts");
+        	if (csvPath == null) return;
 
             progressUI.updateStatus("Reading CSV...");
             List<GlassPartItem> items = CsvReader.read(csvPath, this::createItem);
