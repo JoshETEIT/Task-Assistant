@@ -100,17 +100,17 @@ public class PropertyVisibilityImportTask extends TaskBase {
         for (int i = 0; i < rules.size() && !TestSuite.isTaskCancelled(); i++) {
             PropertyVisibilityInfo rule = rules.get(i);
             progressUI.updateMainProgress(i);
-            progressUI.updateStepProgress(50 + (i * 50 / rules.size()), 
-                "Processing rule " + (i + 1) + "/" + rules.size() + " (" + processedCount + " processed)");
+            progressUI.updateStepProgress(50 + (i * 40 / rules.size()), 
+                "Processing " + (i + 1) + "/" + rules.size());
             
             try {
                 checkCancellation();
-                processSingleRule(driver, wait, rule);
+                processSingleRule(driver, wait, rule, progressUI);
                 processedCount++;
-                progressUI.updateStatus("Processed: " + rule.part + " - " + rule.property);
+                progressUI.updateStatus("Processed: " + rule.property + " (" + processedCount + "/" + rules.size() + ")");
                 
             } catch (Exception e) {
-                System.out.println("Error processing rule '" + rule.part + " - " + rule.property + "': " + e.getMessage());
+                System.out.println("Error processing rule '" + rule.property + "': " + e.getMessage());
                 // Continue with next rule
             }
         }
@@ -118,7 +118,68 @@ public class PropertyVisibilityImportTask extends TaskBase {
         progressUI.updateStatus("Import complete: " + processedCount + " rules processed");
     }
     
-    private void processSingleRule(WebDriver driver, WebDriverWait wait, PropertyVisibilityInfo rule) throws InterruptedException {
+    private void processSingleRule(WebDriver driver, WebDriverWait wait, PropertyVisibilityInfo rule, ProgressUI progressUI) throws InterruptedException {
+        checkCancellation();
+        
+        if (automation.config.ConfigManager.getInstance()
+            .getConfig().getTaskPreferences().isPropertyVisibilityUseIndividualColumns()) {
+            progressUI.updateStatus("Using individual columns for: " + rule.property);
+            processIndividualColumns(driver, wait, rule, progressUI);
+        } else {
+            updateEntireRow(driver, wait, rule, progressUI);
+        }
+    }
+
+    private void updateEntireRow(WebDriver driver, WebDriverWait wait, PropertyVisibilityInfo rule, ProgressUI progressUI) {
+        try {
+            checkCancellation();
+            
+            // Find the row for this property
+            String rowXpath = String.format(
+                "//tr[td[@class='propertyRowCell firstCol' and span[text()='%s']]]", 
+                rule.property);
+            
+            List<WebElement> rows = driver.findElements(By.xpath(rowXpath));
+            if (rows.isEmpty()) {
+                System.out.println("No row found for property: " + rule.property);
+                return;
+            }
+            
+            WebElement targetRow = rows.get(0);
+            
+            // Find the "All" dropdown in this row (second td)
+            List<WebElement> allDropdowns = targetRow.findElements(By.cssSelector("td.propagatePropertyRowCell select.propertyRowCellSelect"));
+            if (allDropdowns.isEmpty()) {
+                System.out.println("No 'All' dropdown found for: " + rule.property);
+                return;
+            }
+            
+            WebElement allDropdown = allDropdowns.get(0);
+            
+            // Scroll to the element
+            ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({block: 'center'});", allDropdown);
+            Thread.sleep(100);
+            
+            // Select the value in the "All" dropdown
+            Select select = new Select(allDropdown);
+            int valueIndex = Integer.parseInt(rule.value);
+            select.selectByIndex(valueIndex);
+            
+            // Green highlight on success (respects visual debug config)
+            automation.helpers.HighlightHelper.highlight(driver, allDropdown, 
+                automation.helpers.HighlightHelper.Color.GREEN, 
+                automation.helpers.HighlightHelper.Linger.ON);
+            
+            progressUI.updateStatus("Updated: " + rule.property);
+            Thread.sleep(200); // Brief pause for the update to propagate
+            
+        } catch (Exception e) {
+            System.out.println("Failed to update row for " + rule.property + ": " + e.getMessage());
+            throw new RuntimeException("Failed to process rule: " + rule.property, e);
+        }
+    }
+    
+    private void processIndividualColumns(WebDriver driver, WebDriverWait wait, PropertyVisibilityInfo rule, ProgressUI progressUI) throws InterruptedException {
         checkCancellation();
         
         String cssSelector = "select.propertyRowCellSelect." + rule.part + "-" + rule.property + "-editor";
@@ -133,24 +194,33 @@ public class PropertyVisibilityImportTask extends TaskBase {
                 return;
             }
             
-            // Process each dropdown
-            for (WebElement dropdown : dropdowns) {
+            progressUI.updateStatus("Updating " + dropdowns.size() + " columns for: " + rule.property);
+            
+            // Process each dropdown with green highlighting
+            for (int i = 0; i < dropdowns.size(); i++) {
                 checkCancellation();
                 
                 try {
+                    WebElement dropdown = dropdowns.get(i);
+                    
                     // Scroll to the element
                     ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView({block: 'center'});", dropdown);
-                    Thread.sleep(100);
+                    Thread.sleep(50);
                     
                     // Select the value
                     Select select = new Select(dropdown);
                     int valueIndex = Integer.parseInt(rule.value);
                     select.selectByIndex(valueIndex);
                     
-                    Thread.sleep(50); // Brief pause between selections
+                    // Green highlight on success
+                    automation.helpers.HighlightHelper.highlight(driver, dropdown, 
+                        automation.helpers.HighlightHelper.Color.GREEN, 
+                        automation.helpers.HighlightHelper.Linger.OFF);
+                    
+                    Thread.sleep(30); // Brief pause between selections
                     
                 } catch (Exception e) {
-                    System.out.println("Failed to set dropdown for " + rule.part + "-" + rule.property + ": " + e.getMessage());
+                    System.out.println("Failed to set dropdown " + (i + 1) + " for " + rule.part + "-" + rule.property + ": " + e.getMessage());
                     // Continue with next dropdown
                 }
             }
@@ -159,6 +229,8 @@ public class PropertyVisibilityImportTask extends TaskBase {
             throw new RuntimeException("Failed to process rule: " + rule.part + "-" + rule.property, e);
         }
     }
+    
+    
     
     // Data class for property visibility information
     private static class PropertyVisibilityInfo {

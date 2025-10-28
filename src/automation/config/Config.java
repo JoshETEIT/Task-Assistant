@@ -7,6 +7,7 @@ import java.util.Map;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Config {
     private UiConfig ui;
+    private TaskPreferences taskPreferences = new TaskPreferences();
     private AutomationConfig automation;
     private SeleniumConfig selenium;
     private Map<String, Object> custom;
@@ -14,6 +15,9 @@ public class Config {
     // Getters and setters
     public UiConfig getUi() { return ui; }
     public void setUi(UiConfig ui) { this.ui = ui; }
+    
+    public TaskPreferences getTaskPreferences() { return taskPreferences; } // Add this getter
+    public void setTaskPreferences(TaskPreferences taskPreferences) { this.taskPreferences = taskPreferences; }
     
     public AutomationConfig getAutomation() { return automation; }
     public void setAutomation(AutomationConfig automation) { this.automation = automation; }
@@ -31,6 +35,7 @@ public class Config {
         private int dialogWidth = 400;
         private int dialogHeight = 300;
         private FontConfig font;
+        
         
         // Getters and setters
         public String getTheme() { return theme; }
@@ -63,6 +68,17 @@ public class Config {
         
         public String getStyle() { return style; }
         public void setStyle(String style) { this.style = style; }
+    }
+    
+    public static class TaskPreferences {
+    	private boolean propertyVisibilityUseIndividualColumns = false;
+
+    	public boolean isPropertyVisibilityUseIndividualColumns() { 
+    	    return propertyVisibilityUseIndividualColumns; 
+    	}
+    	public void setPropertyVisibilityUseIndividualColumns(boolean propertyVisibilityUseIndividualColumns) { 
+    	    this.propertyVisibilityUseIndividualColumns = propertyVisibilityUseIndividualColumns; 
+    	}
     }
     
     public static class AutomationConfig {

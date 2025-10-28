@@ -16,11 +16,21 @@ import automation.helpers.FileChooserHelper;
 import automation.ui.ProgressUI;
 
 public abstract class TaskBase implements AutomationTask {
-    protected void handleError(ProgressUI progressUI, Exception e) {
-        String errorMsg = "❌ " + getName() + " failed: " + e.getMessage();
-        progressUI.updateStepProgress(100, errorMsg);
-        FileChooserHelper.showErrorDialog(errorMsg);
-    }
+	
+	protected void handleError(ProgressUI progressUI, Exception e) {
+	    String errorMsg = "❌ " + getName() + " failed: " + e.getMessage();
+	    if (progressUI != null) {
+	        progressUI.updateStepProgress(100, errorMsg);
+	        progressUI.updateStatus(errorMsg);
+	        
+	        // Auto-close after showing error
+	        new javax.swing.Timer(2000, evt -> {
+	            progressUI.close();
+	            ((javax.swing.Timer)evt.getSource()).stop();
+	        }).start();
+	    }
+	    FileChooserHelper.showErrorDialog(errorMsg);
+	}
     
     protected void checkCancellation() {
         if (TestSuite.isTaskCancelled()) {

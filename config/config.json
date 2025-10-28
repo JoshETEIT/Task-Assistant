@@ -3,12 +3,15 @@
     "theme" : "dark",
     "enableAnimations" : true,
     "dialogWidth" : 400,
-    "dialogHeight" : 275,
+    "dialogHeight" : 400,
     "font" : {
       "family" : "Segoe UI",
       "size" : 14,
       "style" : "plain"
     }
+  },
+  "taskPreferences" : {
+    "propertyVisibilityUseIndividualColumns" : true
   },
   "automation" : {
     "defaultRetryAttempts" : 3,
@@ -25,7 +28,7 @@
     "window" : {
       "width" : 1920,
       "height" : 1080,
-      "maximize" : false
+      "maximize" : true
     }
   },
   "custom" : null
