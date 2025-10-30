@@ -19,6 +19,8 @@ public class TaskRegistry {
         register(new PriceFileRuleRemover());
         register(new PriceFileRuleAdder());
         register(new PropertyVisibilityImportTask());
+        register(new LookupEditorImportTask());
+        register(new DefaultIronmongeryImportTask());
     }
     
     public static void register(AutomationTask task) {

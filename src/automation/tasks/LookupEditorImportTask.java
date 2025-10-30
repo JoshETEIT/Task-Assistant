@@ -68,7 +68,7 @@ public class LookupEditorImportTask extends TaskBase {
         }
         
         // Navigate directly to Lookup Editor URL
-        driver.get(baseUrl + "/PricingAndConfig/LookupEditor");
+        driver.get(baseUrl + "/Production/LookupEditor/IronmongeryLookup");
         wait.until(ExpectedConditions.urlContains("LookupEditor"));
         
         // Wait for the page to load completely

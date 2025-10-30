@@ -140,6 +140,10 @@ public class ElementHelper {
 
             wait.until(ExpectedConditions
                     .visibilityOfElementLocated(locator))
+                .clear();
+            
+            wait.until(ExpectedConditions
+                    .visibilityOfElementLocated(locator))
                 .sendKeys(text);
 
         } catch (Exception e) {
@@ -157,14 +161,25 @@ public class ElementHelper {
             WebElement editorContainer = getShortWait(driver)
                     .until(ExpectedConditions.presenceOfElementLocated(By.xpath(xpath)));
 
-            ((JavascriptExecutor) driver).executeScript(
+            JavascriptExecutor js = (JavascriptExecutor) driver;
+
+            // Clear the existing CodeMirror content
+            js.executeScript(
+                "arguments[0].querySelector('.CodeMirror').CodeMirror.setValue('');",
+                editorContainer
+            );
+
+            // Then set the new value
+            js.executeScript(
                 "arguments[0].querySelector('.CodeMirror').CodeMirror.setValue(arguments[1]);",
                 editorContainer, value
             );
+
         } catch (Exception e) {
             System.out.printf("Unable to set CodeMirror for '%s': %s%n", labelText, e.getMessage());
         }
     }
+
 
     // =========================================================
     //  DROPDOWNS & SELECTS
