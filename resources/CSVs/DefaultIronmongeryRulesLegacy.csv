@@ -1,0 +1,3 @@
+SortOrder,Name,Group,Loop,Active,Condition,Quantity,Ironmongery,Comment
+10,Single Handle Config,Single door,sash,yes,is_complete_new and not is_opening,1,Sash Lift in Polished Chrome,Front door handle rule
+11,Single Handle Config,Single door,sash,yes,is_complete_new and not is_opening,2,Fitch Catch (Non Locking) in Polished Chrome,Front door handle rule

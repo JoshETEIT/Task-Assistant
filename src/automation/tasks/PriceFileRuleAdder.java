@@ -34,16 +34,69 @@ public class PriceFileRuleAdder extends TaskBase {
             String csvPath = getCsvFile(progressUI, "Price File Rules");
             if (csvPath == null) return;
 
-            String variablesCsvPath = getCsvFile(progressUI, "(Optional) Price File Variables", false);
-            
-            // Read CSV data
+            // Try to load variables/groups from embedded tables first (table[1] = groups, table[2] = variables)
             progressUI.updateStepProgress(10, "Reading rules CSV...");
             List<RuleInfo> rules = CsvReader.read(csvPath, this::createRule);
-            
+
+            List<GroupInfo> groups = new ArrayList<>();
             List<VariableInfo> variables = new ArrayList<>();
-            if (variablesCsvPath != null && !variablesCsvPath.trim().isEmpty()) {
-                progressUI.updateStepProgress(20, "Reading variables CSV...");
-                variables = CsvReader.read(variablesCsvPath, this::createVariable);
+
+            // Attempt to read groups from embedded table[1]
+            try {
+                List<GroupInfo> groupsFromCsv = CsvReader.read(csvPath, this::createGroup, 1, 1);
+                if (groupsFromCsv != null && !groupsFromCsv.isEmpty()) {
+                    groups.addAll(groupsFromCsv);
+                    System.out.println("✅ Groups loaded from embedded table[1] in CSV");
+                } else {
+                    System.out.println("⚠️ No embedded groups found in table[1]");
+                }
+            } catch (Exception e) {
+                System.out.println("⚠️ Error reading embedded groups table[1]: " + e.getMessage());
+            }
+
+            // Attempt to read variables from embedded table[2]
+            try {
+                List<VariableInfo> varsFromCsv = CsvReader.read(csvPath, this::createVariable, 1, 2);
+                if (varsFromCsv != null && !varsFromCsv.isEmpty()) {
+                    variables.addAll(varsFromCsv);
+                    System.out.println("✅ Variables loaded from embedded table[2] in CSV");
+                } else {
+                    System.out.println("⚠️ No embedded variables found in table[2]");
+                }
+            } catch (Exception e) {
+                System.out.println("⚠️ Error reading embedded variables table[2]: " + e.getMessage());
+            }
+
+            // Fallback: ask user for optional groups CSV if none found
+            if (groups.isEmpty()) {
+                String groupsCsvPath = getCsvFile(progressUI, "(Optional) Price File Groups", false);
+                if (groupsCsvPath != null && !groupsCsvPath.trim().isEmpty()) {
+                    groups = CsvReader.read(groupsCsvPath, this::createGroup);
+                    System.out.println("✅ Groups loaded from separate CSV: " + groupsCsvPath);
+                } else {
+                    System.out.println("⚠️ No groups CSV selected by user (groups import skipped)");
+                }
+            }
+
+            // Fallback: ask user for optional variables CSV if none found
+            if (variables.isEmpty()) {
+                String variablesCsvPath = getCsvFile(progressUI, "(Optional) Price File Variables", false);
+                if (variablesCsvPath != null && !variablesCsvPath.trim().isEmpty()) {
+                    variables = CsvReader.read(variablesCsvPath, this::createVariable);
+                    System.out.println("✅ Variables loaded from separate CSV: " + variablesCsvPath);
+                } else {
+                    System.out.println("⚠️ No variables CSV selected by user (variables import skipped)");
+                }
+            }
+
+            // Debug print to verify loaded variables/groups
+            System.out.println("Groups loaded from CSV: " + groups.size());
+            for (GroupInfo g : groups) {
+                System.out.println("Group -> name: " + g.name + ", sortOrder: " + g.sortOrder);
+            }
+            System.out.println("Variables loaded from CSV: " + variables.size());
+            for (VariableInfo v : variables) {
+                System.out.println("Variable -> name: " + v.variable + ", value: " + v.value);
             }
             
             // Navigate and setup
@@ -55,8 +108,7 @@ public class PriceFileRuleAdder extends TaskBase {
             
             // Process groups - open once, check and create, then close
             progressUI.updateStepProgress(45, "Processing groups");
-            Set<String> existingGroups = checkAndCreateGroups(driver, wait, rules, progressUI);
-            progressUI.updateStatus("Existing groups: " + existingGroups.size());
+            processGroups(driver, wait, groups, progressUI);
             
             // Process variables - open once, check and create, then close  
             progressUI.updateStepProgress(60, "Processing variables");
@@ -76,39 +128,56 @@ public class PriceFileRuleAdder extends TaskBase {
         }
     }
     
-    private Set<String> checkAndCreateGroups(WebDriver driver, WebDriverWait wait, List<RuleInfo> rules, ProgressUI progressUI) {
+    /**
+     * Replaces the old hardcoded getUniqueGroups/checkAndCreateGroups logic.
+     * Takes groups loaded from CSV (may be empty) and creates any missing ones.
+     */
+    private void processGroups(WebDriver driver, WebDriverWait wait, List<GroupInfo> groups, ProgressUI progressUI) {
         Set<String> existingGroups = new HashSet<>();
-        
         try {
             // Open groups panel once
             openPanel(driver, "pricing_groups_resize_toggle");
             
             // Check existing groups
             progressUI.updateStatus("Checking existing groups");
-            findElementsBySelectors(driver, 
-                new String[]{"samp.read_only_div", "input.pricing_group_edit"}, 
+            findElementsBySelectors(driver,
+                new String[]{"samp.read_only_div", "input.pricing_group_edit"},
                 existingGroups);
             
-            // Create new groups if needed
-            Set<String> uniqueGroups = getUniqueGroups(rules);
-            Set<String> groupsToCreate = new HashSet<>(uniqueGroups);
-            groupsToCreate.removeAll(existingGroups);
-            
+            // Build list of groups to create (only those not already present)
+            List<GroupInfo> groupsToCreate = new ArrayList<>();
+            for (GroupInfo g : groups) {
+                if (g == null || g.name == null || g.name.trim().isEmpty()) continue;
+                if (!existingGroups.contains(g.name.trim())) {
+                    groupsToCreate.add(g);
+                }
+            }
+
             if (!groupsToCreate.isEmpty()) {
                 progressUI.updateStatus("Creating " + groupsToCreate.size() + " new groups");
-                createGroupsInOpenPanel(driver, groupsToCreate, progressUI);
+                // Create each group using your existing createSingleGroup helper
+                for (GroupInfo g : groupsToCreate) {
+                    checkCancellation();
+                    int sort = 10;
+                    try {
+                        if (g.sortOrder != null && !g.sortOrder.trim().isEmpty()) {
+                            sort = Integer.parseInt(g.sortOrder.trim());
+                        }
+                    } catch (Exception ignore) { /* keep default */ }
+                    createSingleGroup(driver, g.name, sort);
+                    progressUI.updateStatus("Created group: " + g.name);
+                }
             } else {
                 progressUI.updateStatus("All groups already exist - skipping group creation");
             }
-            
+
             // Close groups panel once
             closePanel(driver, "img.pricing_groups_close_button");
             
         } catch (Exception e) {
             System.out.println("Error processing groups: " + e.getMessage());
+            try { closePanel(driver, "img.pricing_groups_close_button"); } catch (Exception ignore) {}
         }
-        
-        return existingGroups;
     }
     
     private void checkAndCreateVariables(WebDriver driver, WebDriverWait wait, List<VariableInfo> variables, ProgressUI progressUI) {
@@ -175,6 +244,14 @@ public class PriceFileRuleAdder extends TaskBase {
         }
         return rule;
     }
+
+    // new group mapper
+    private GroupInfo createGroup(String[] fields) {
+        GroupInfo g = new GroupInfo();
+        if (fields.length >= 1) g.name = fields[0];
+        if (fields.length >= 2) g.sortOrder = fields[1];
+        return g;
+    }
     
     private VariableInfo createVariable(String[] fields) {
         VariableInfo variable = new VariableInfo();
@@ -234,16 +311,6 @@ public class PriceFileRuleAdder extends TaskBase {
                 // Continue with next selector
             }
         }
-    }
-    
-    private Set<String> getUniqueGroups(List<RuleInfo> rules) {
-        Set<String> groups = new HashSet<>();
-        for (RuleInfo rule : rules) {
-            if (rule.group != null && !rule.group.trim().isEmpty()) {
-                groups.add(rule.group.trim());
-            }
-        }
-        return groups;
     }
     
     private List<VariableInfo> filterExistingVariables(List<VariableInfo> variables, Set<String> existingVariables) {
@@ -371,5 +438,10 @@ public class PriceFileRuleAdder extends TaskBase {
     
     private static class VariableInfo {
         String variable, value;
+    }
+
+    // New group data class
+    private static class GroupInfo {
+        String name, sortOrder;
     }
 }

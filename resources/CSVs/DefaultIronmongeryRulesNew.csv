@@ -1,0 +1,9 @@
+#Table SortOrder,Name,Group,Loop,Active,Condition,Quantity,Ironmongery,Comment
+10,Single Handle Config,Single door,sash,yes,is_complete_new and not is_opening,1,Sash Lift in Polished Chrome,Front door handle rule
+11,Single Handle Config,Single door,sash,yes,is_complete_new and not is_opening,2,Fitch Catch (Non Locking) in Polished Chrome,Front door handle rule
+#Table Name,SortOrder,,,,,,,
+custom_group_1,100,,,,,,,
+Single door,110,,,,,,,
+#Table Name,Value,,,,,,,
+default_handle_type,lever,,,,,,,
+default_lock_type,5_lever,,,,,,,

@@ -31,23 +31,71 @@ public class DefaultIronmongeryImportTask extends TaskBase {
 
             WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
 
-            // --- Load CSVs ---
+         // --- Load CSVs ---
             String csvPath = getCsvFile(progressUI, "Default Ironmongery Rules");
             if (csvPath == null) return;
 
-            String groupsCsvPath = getCsvFile(progressUI, "Default Ironmongery Groups", false);
-            String variablesCsvPath = getCsvFile(progressUI, "Default Ironmongery Variables", false);
+            // --- Try to read groups and variables from tables [1] and [2] in the same CSV ---
+            List<IronmongeryRuleInfo> rules = new ArrayList<>();
+            List<GroupInfo> groups = new ArrayList<>();
+            List<VariableInfo> variables = new ArrayList<>();
 
             progressUI.updateStepProgress(10, "Reading rules CSV...");
-            List<IronmongeryRuleInfo> rules = CsvReader.read(csvPath, this::createRule);
+            rules = CsvReader.read(csvPath, this::createRule);
 
-            List<GroupInfo> groups = groupsCsvPath != null && !groupsCsvPath.trim().isEmpty()
-                    ? CsvReader.read(groupsCsvPath, this::createGroup)
-                    : new ArrayList<>();
+            // Attempt to read table[1] as groups
+            try {
+                List<GroupInfo> groupsFromCsv = CsvReader.read(csvPath, this::createGroup, 1, 1);
+                if (groupsFromCsv != null && !groupsFromCsv.isEmpty()) {
+                    groups.addAll(groupsFromCsv);
+                    System.out.println("✅ Groups loaded from embedded table[1] in CSV");
+                } else {
+                    System.out.println("⚠️ No groups found in table[1], will prompt for external CSV.");
+                }
+            } catch (Exception e) {
+                System.out.println("⚠️ Could not read groups from embedded table[1]: " + e.getMessage());
+            }
 
-            List<VariableInfo> variables = variablesCsvPath != null && !variablesCsvPath.trim().isEmpty()
-                    ? CsvReader.read(variablesCsvPath, this::createVariable)
-                    : new ArrayList<>();
+            // Attempt to read table[2] as variables
+            try {
+                List<VariableInfo> variablesFromCsv = CsvReader.read(csvPath, this::createVariable, 1, 2);
+                if (variablesFromCsv != null && !variablesFromCsv.isEmpty()) {
+                    variables.addAll(variablesFromCsv);
+                    System.out.println("✅ Variables loaded from embedded table[2] in CSV");
+                } else {
+                    System.out.println("⚠️ No variables found in table[2], will prompt for external CSV.");
+                }
+            } catch (Exception e) {
+                System.out.println("⚠️ Could not read variables from embedded table[2]: " + e.getMessage());
+            }
+
+            // --- Fallback: ask user if groups/variables still empty ---
+            if (groups.isEmpty()) {
+                String groupsCsvPath = getCsvFile(progressUI, "Default Ironmongery Groups", false);
+                if (groupsCsvPath != null && !groupsCsvPath.trim().isEmpty()) {
+                    groups = CsvReader.read(groupsCsvPath, this::createGroup);
+                    System.out.println("✅ Groups loaded from separate CSV");
+                } else {
+                    System.out.println("⚠️ No groups CSV selected by user.");
+                }
+            }
+
+            if (variables.isEmpty()) {
+                String variablesCsvPath = getCsvFile(progressUI, "Default Ironmongery Variables", false);
+                if (variablesCsvPath != null && !variablesCsvPath.trim().isEmpty()) {
+                    variables = CsvReader.read(variablesCsvPath, this::createVariable);
+                    System.out.println("✅ Variables loaded from separate CSV");
+                } else {
+                    System.out.println("⚠️ No variables CSV selected by user.");
+                }
+            }
+
+            // --- Debug print to verify ---
+            System.out.println("Variables loaded from CSV:");
+            for (VariableInfo v : variables) {
+                System.out.println("Name: " + v.name + ", Value: " + v.value);
+            }
+
 
             // --- Navigate ---
             progressUI.updateStepProgress(30, "Navigating to Default Ironmongery");
