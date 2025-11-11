@@ -26,13 +26,13 @@ chamferedBottomRailAngle,
 defaultPanelInFrameTransomShape,
 trickleVentInFrameAtSashCentrePartNo,-
 isAllowedInRange,Yes
-singleGlassPartNo,4mm float Toughened (GL1004)
+singleGlassPartNo,-
 singleGlassOptions,
-internalGlassPartNo,4mm K Glass Toughened (GL1005)
+internalGlassPartNo,4mm Softcoat (GL100025)
 internalGlassOptions,
-middleGlassPartNo,4mm K Glass (GL1003)
+middleGlassPartNo,-
 middleGlassOptions,
-externalGlassPartNo,4mm float Toughened (GL1004)
+externalGlassPartNo,4mm Softcoat (GL100025)
 externalGlassOptions,
 glazingId,Double (2)
 isIndividualPanes,Yes
@@ -50,7 +50,7 @@ outerHeritageSpacerDimId,4mm (104)
 outerHeritageSpacerColourId,White (1)
 outerGasFillId,Krypton (0)
 glassFixId,Heritage Putty (344)
-glazingBeadFixId,Black Tape (80)
+glazingBeadFixId,Acrylic (82)
 dgMouldingCutterId,tbc (0)
 sgMouldingCutterId,tbc (0)
 manualShoulderDim,
@@ -89,8 +89,7 @@ defaultDoubleGlazingRebateWidthForSash,10
 defaultTripleGlazingRebateWidthForSash,10
 defaultHeritageGlazingRebateWidthForSash,10
 defaultDirectGlazedUnitTransomShape,
-"Standard GB width options
-gbWidthStdOptions",
+Standard GB width options,
 trickleVentInFrameAtSashCentrePartNo,-
 mechanicalClearanceLeft,
 mechanicalClearanceRight,
@@ -101,20 +100,20 @@ width,
 height,
 dguWidth,
 dguHeight,
-singleGlassPartNo,4mm float (GL1001)
+singleGlassPartNo,-
 singleGlassOptions,
-internalGlassPartNo,4mm K Glass Toughened (GL1005)
+internalGlassPartNo,-
 internalGlassOptions,
-middleGlassPartNo,4mm K Glass (GL1003)
+middleGlassPartNo,-
 middleGlassOptions,
-externalGlassPartNo,4mm float (GL1001)
+externalGlassPartNo,4mm Clear (GL100005)
 externalGlassOptions,
 glazingId,Double (2)
 isIndividualPanes,Yes
 isDirectGlazedUnit,-
 spacerDimId,-
 heritageSpacerDimId,4mm (104)
-spacerColourId,Black (2)
+spacerColourId,-
 heritageSpacerColourId,Black (0)
 gasFillId,Argon (1)
 innerSpacerDimId,-
@@ -126,7 +125,7 @@ outerHeritageSpacerDimId,4mm (104)
 outerHeritageSpacerColourId,Black (0)
 outerGasFillId,Argon (1)
 glassFixId,Heritage Putty (344)
-glazingBeadFixId,Black Tape (80)
+glazingBeadFixId,-
 dgMouldingCutterId,tbc (0)
 sgMouldingCutterId,tbc (0)
 manualShoulderDim,
@@ -148,12 +147,9 @@ offsetX,
 offsetX2,
 offsetY,
 offsetY2,
-"Internal Bead Thickness
-internalBeadThickness",
-"External Bead Thickness
-externalBeadThickness",
-"Glass Bead Overlap
-glassBeadOverlap",
+Internal Bead Thickness,
+External Bead Thickness,
+Glass Bead Overlap,
 minimumDistanceFromEdge,
 isCentredHorizontally,-
 isCentredVertically,-
@@ -170,14 +166,12 @@ sowNotes,"Traditional Range. Multiple panes, solid bars."
 installationNotes,
 productionNotes,
 freeItem,No
-depth,
+depth,43
 height,70
-cillMaterialId,Sapele Hardwood (22)
+cillMaterialId,Accoya (1)
 restrictCillDepthToPredefinedValues,-
-"Cill Nosing Depth
-cillNosingDepthOptions","25, 70"
-"Cill Back Depth
-cillBackDepth",82
+Cill Nosing Depth,"25, 70"
+Cill Back Depth,82
 internalFinish,Primer Teknos Antique White
 externalFinish,Primer Teknos Antique White
 cillFinish,Primer Teknos Antique White
@@ -201,9 +195,9 @@ autoCalcSashWindowComponents,
 autoCalcOtherComponents,
 autoCalcRepairComponents,
 pointingMethod,
-frameMaterialId,Sapele Hardwood (22)
-cillMaterialId,Sapele Hardwood (22)
-sashMaterialId,Sapele Hardwood (22)
+frameMaterialId,Accoya (1)
+cillMaterialId,Accoya (1)
+sashMaterialId,Accoya (1)
 isDocL,-
 isSecuredByDesign,-
 mouldingTypeId,Lambs Tongue (1)
@@ -233,7 +227,7 @@ externalPanelColour,
 glassColour,
 showRange,-
 decorationLevel,-
-installationLevel,Ventrolla Perimeter Sealing System (VPSS) with Sash Removal System (SRS) (vpss_srs)
+installationLevel,-
 cadDrawingRequired,-
 isSecondaryGlazing,-
 includeClearance,-
@@ -243,8 +237,7 @@ leftWidth,80
 rightWidth,80
 bottomHeight,70
 frameDepth,
-"Cill Depth
-cillDepth",
+Cill Depth,43
 cillBackDepth,
 cillAngle,9
 cillHornLengthLeft,
@@ -280,12 +273,12 @@ flagWidth,
 isAllowedInRange,Yes
 muntinStopSize,15
 thicknessInFrame,70
-thicknessInSash,70
+thicknessInSash,
 thicknessInFrameFinished,
 isAllowedInRange,Yes
 muntinStopSize,15
 thicknessInFrame,70
-thicknessInSash,70
+thicknessInSash,
 thicknessInFrameFinished,
 isMidrail,-
 midrailThickness,
@@ -312,8 +305,7 @@ isAllowedInRange,Yes
 topHeight,55
 leftWidth,55
 rightWidth,55
-"Internal Bottom Rail Height
-bottomHeight",63
+Internal Bottom Rail Height,63
 defaultMuntinThickness,70
 trickleVentInSashCentrePartNo,-
 trickleVentInFrameAtSashCentrePartNo,-
@@ -508,11 +500,9 @@ sashHeightExt,
 sashSplitId,-
 topSashHeight,
 bottomSashHeight,
-"Midrail Height
-midRail",35
+Midrail Height,35
 midRailTypeId,Square (90)
-"Sash Thickness
-thickness",45
+Sash Thickness,45
 midrailThickness,45
 topHornTypeShortName,No horn (no_horn)
 bottomHornTypeShortName,No horn (no_horn)
@@ -540,8 +530,7 @@ isAllowedInRange,Yes
 topHeight,95
 leftWidth,95
 rightWidth,95
-"Internal Bottom Rail Height
-bottomHeight",186
+Internal Bottom Rail Height,186
 defaultMuntinThickness,
 trickleVentInSashCentrePartNo,-
 trickleVentInFrameAtSashCentrePartNo,-
@@ -594,8 +583,7 @@ defaultOpenOutSteppedBottomRailOverlap,
 chamferedBottomRailAngle,
 leftWidth,55
 rightWidth,55
-"Internal Bottom Rail Height
-bottomHeight",68
+Internal Bottom Rail Height,68
 operationId,-
 defaultMuntinThickness,
 bottomHeightExternal,75
@@ -624,8 +612,7 @@ chamferedBottomRailAngle,
 isFixedHorizontalSlidingSashPart,-
 topHeight,
 rightWidth,
-"Internal Bottom Rail Height
-bottomHeight",
+Internal Bottom Rail Height,
 defaultMuntinThickness,
 trickleVentInSashCentrePartNo,
 trickleVentInFrameAtSashCentrePartNo,-
@@ -644,8 +631,7 @@ hornTypeShortName,-
 isMasterLeaf,-
 topHeight,
 leftWidth,
-"Internal Bottom Rail Height
-bottomHeight",
+Internal Bottom Rail Height,
 defaultMuntinThickness,
 trickleVentInSashCentrePartNo,
 trickleVentInFrameAtSashCentrePartNo,-
@@ -684,8 +670,7 @@ hornTypeShortName,-
 isMasterLeaf,-
 topHeight,95
 leftWidth,95
-"Internal Bottom Rail Height
-bottomHeight",186
+Internal Bottom Rail Height,186
 defaultMuntinThickness,45
 trickleVentInSashCentrePartNo,
 trickleVentInFrameAtSashCentrePartNo,-
@@ -714,8 +699,7 @@ allowOpen,-
 isMasterLeaf,-
 topHeight,95
 rightWidth,95
-"Internal Bottom Rail Height
-bottomHeight",186
+Internal Bottom Rail Height,186
 defaultMuntinThickness,45
 trickleVentInSashCentrePartNo,
 trickleVentInFrameAtSashCentrePartNo,-
@@ -729,8 +713,7 @@ allowOpen,-
 isMasterLeaf,-
 leftWidth,
 rightWidth,
-"Internal Bottom Rail Height
-bottomHeight",
+Internal Bottom Rail Height,
 defaultMuntinThickness,
 bottomHeightExternal,
 thickness,
@@ -743,8 +726,7 @@ allowOpen,-
 isMasterLeaf,-
 leftWidth,
 rightWidth,
-"Internal Bottom Rail Height
-bottomHeight",
+Internal Bottom Rail Height,
 defaultMuntinThickness,
 bottomHeightExternal,90
 thickness,45
