@@ -1,0 +1,762 @@
+PropertyName,Value
+isAllowedInRange,No
+internalPanelTypeId,-
+internalPanelBeadId,-
+externalPanelTypeId,-
+externalPanelBeadId,-
+panelThickness,
+panelMaterialId,-
+verticalGrooveThickness,
+verticalGrooveDistance,
+horizontalGrooveThickness,
+horizontalGrooveDistance,
+defaultMechanicalClearancePanelInFrameLeft,
+defaultMechanicalClearancePanelInFrameRight,
+defaultMechanicalClearancePanelInFrameTop,
+defaultMechanicalClearancePanelInFrameBottom,
+topHeight,
+bottomHeight,
+bottomHeightExternal,
+thickness,
+btmRailShapeId,-
+constantSideOnHeightCalculation,External Height (external_height)
+defaultOpenInSteppedBottomRailOverlap,
+defaultOpenOutSteppedBottomRailOverlap,
+chamferedBottomRailAngle,
+defaultPanelInFrameTransomShape,
+trickleVentInFrameAtSashCentrePartNo,-
+isAllowedInRange,Yes
+singleGlassPartNo,4mm float Toughened (GL1004)
+singleGlassOptions,
+internalGlassPartNo,4mm K Glass Toughened (GL1005)
+internalGlassOptions,
+middleGlassPartNo,4mm K Glass (GL1003)
+middleGlassOptions,
+externalGlassPartNo,4mm float Toughened (GL1004)
+externalGlassOptions,
+glazingId,Double (2)
+isIndividualPanes,Yes
+spacerDimId,-
+heritageSpacerDimId,6mm (106)
+spacerColourId,White (1)
+heritageSpacerColourId,White (1)
+gasFillId,Krypton (0)
+innerSpacerDimId,-
+innerHeritageSpacerDimId,4mm (104)
+innerHeritageSpacerColourId,White (1)
+innerGasFillId,Krypton (0)
+outerSpacerDimId,-
+outerHeritageSpacerDimId,4mm (104)
+outerHeritageSpacerColourId,White (1)
+outerGasFillId,Krypton (0)
+glassFixId,Heritage Putty (344)
+glazingBeadFixId,Black Tape (80)
+dgMouldingCutterId,tbc (0)
+sgMouldingCutterId,tbc (0)
+manualShoulderDim,
+measurementTypeId,-
+manualWidth,
+manualHeight,
+topHeight,
+bottomHeight,
+bottomHeightExternal,
+thickness,
+btmRailShapeId,Square (99)
+constantSideOnHeightCalculation,External Height (external_height)
+defaultOpenInSteppedBottomRailOverlap,
+defaultOpenOutSteppedBottomRailOverlap,
+chamferedBottomRailAngle,
+defaultDirGuStopSizeLeft,
+defaultDirGuStopSizeRight,
+defaultDirGuStopSizeTop,
+defaultDirGuStopSizeBottom,
+defaultSingleGlazingToleranceForDirGU,1
+defaultDoubleGlazingToleranceForDirGU,1.5
+defaultTripleGlazingToleranceForDirGU,1.5
+defaultHeritageGlazingToleranceForDirGU,1.5
+defaultPuttiedSingleGlazingRebateWidthForDirGU,6
+defaultBeadedSingleGlazingRebateWidthForDirGU,6
+defaultDoubleGlazingRebateWidthForDirGU,10
+defaultTripleGlazingRebateWidthForDirGU,10
+defaultHeritageGlazingRebateWidthForDirGU,10
+defaultSingleGlazingTolerance,1
+defaultDoubleGlazingTolerance,1.5
+defaultTripleGlazingTolerance,1.5
+defaultHeritageGlazingTolerance,1.5
+defaultPuttiedSingleGlazingRebateWidthForSash,6
+defaultBeadedSingleGlazingRebateWidthForSash,6
+defaultDoubleGlazingRebateWidthForSash,10
+defaultTripleGlazingRebateWidthForSash,10
+defaultHeritageGlazingRebateWidthForSash,10
+defaultDirectGlazedUnitTransomShape,
+"Standard GB width options
+gbWidthStdOptions",
+trickleVentInFrameAtSashCentrePartNo,-
+mechanicalClearanceLeft,
+mechanicalClearanceRight,
+mechanicalClearanceTop,
+mechanicalClearanceBottom,
+isAllowedInRange,No
+width,
+height,
+dguWidth,
+dguHeight,
+singleGlassPartNo,4mm float (GL1001)
+singleGlassOptions,
+internalGlassPartNo,4mm K Glass Toughened (GL1005)
+internalGlassOptions,
+middleGlassPartNo,4mm K Glass (GL1003)
+middleGlassOptions,
+externalGlassPartNo,4mm float (GL1001)
+externalGlassOptions,
+glazingId,Double (2)
+isIndividualPanes,Yes
+isDirectGlazedUnit,-
+spacerDimId,-
+heritageSpacerDimId,4mm (104)
+spacerColourId,Black (2)
+heritageSpacerColourId,Black (0)
+gasFillId,Argon (1)
+innerSpacerDimId,-
+innerHeritageSpacerDimId,4mm (104)
+innerHeritageSpacerColourId,Black (0)
+innerGasFillId,Argon (1)
+outerSpacerDimId,-
+outerHeritageSpacerDimId,4mm (104)
+outerHeritageSpacerColourId,Black (0)
+outerGasFillId,Argon (1)
+glassFixId,Heritage Putty (344)
+glazingBeadFixId,Black Tape (80)
+dgMouldingCutterId,tbc (0)
+sgMouldingCutterId,tbc (0)
+manualShoulderDim,
+measurementTypeId,-
+manualWidth,
+manualHeight,
+encapsulatedLeadedLight,-
+topHeight,
+bottomHeight,
+bottomHeightExternal,
+thickness,
+btmRailShapeId,-
+constantSideOnHeightCalculation,External Height (external_height)
+defaultOpenInSteppedBottomRailOverlap,
+defaultOpenOutSteppedBottomRailOverlap,
+chamferedBottomRailAngle,
+gbWidthStdOptions,"18, 26"
+offsetX,
+offsetX2,
+offsetY,
+offsetY2,
+"Internal Bead Thickness
+internalBeadThickness",
+"External Bead Thickness
+externalBeadThickness",
+"Glass Bead Overlap
+glassBeadOverlap",
+minimumDistanceFromEdge,
+isCentredHorizontally,-
+isCentredVertically,-
+installationMethodId,-
+fireEgressId,-
+internalHazardId,-
+internalAccessId,-
+landingAccessId,-
+externalAccessId,N/A (0)
+hazardBelowId,-
+cableAlarmId,-
+dormerIssuesId,-
+sowNotes,"Traditional Range. Multiple panes, solid bars."
+installationNotes,
+productionNotes,
+freeItem,No
+depth,
+height,70
+cillMaterialId,Sapele Hardwood (22)
+restrictCillDepthToPredefinedValues,-
+"Cill Nosing Depth
+cillNosingDepthOptions","25, 70"
+"Cill Back Depth
+cillBackDepth",82
+internalFinish,Primer Teknos Antique White
+externalFinish,Primer Teknos Antique White
+cillFinish,Primer Teknos Antique White
+isPAS24,-
+isFrontDoor,-
+isDoorMpls,-
+isKeyWindLock,-
+isThumbTurnLock,-
+isCasementMpls,-
+cementRepairMetre,
+puttyRepairMetre,
+existingSurroundTypeId,-
+existingSurroundActionId,-
+cutBackPlaster,-
+cutOutBrickReveal,-
+hasSeparateAMS,-
+surroundComponentWidthValue,
+splayedLining,-
+autoCalcSurroundComponents,
+autoCalcSashWindowComponents,
+autoCalcOtherComponents,
+autoCalcRepairComponents,
+pointingMethod,
+frameMaterialId,Sapele Hardwood (22)
+cillMaterialId,Sapele Hardwood (22)
+sashMaterialId,Sapele Hardwood (22)
+isDocL,-
+isSecuredByDesign,-
+mouldingTypeId,Lambs Tongue (1)
+staffBeadTypeId,Small (0)
+partingBeadTypeId,Standard (280)
+sheetQty,
+noWork,-
+decoration,-
+draughtseal,-
+newSashes,-
+reActivate,-
+newFrame,-
+installByUs,-
+deliveryByUs,-
+fitToPreparedOpening,No
+kitForm,-
+glazeOnSite,-
+surveyByUs,-
+methodOfDsId,Fit Draught Strips to Opening Sections (3)
+noWorkToFixedAspect,-
+internalFrameColour,
+externalFrameColour,
+internalSashColour,
+externalSashColour,
+internalPanelColour,
+externalPanelColour,
+glassColour,
+showRange,-
+decorationLevel,-
+installationLevel,Ventrolla Perimeter Sealing System (VPSS) with Sash Removal System (SRS) (vpss_srs)
+cadDrawingRequired,-
+isSecondaryGlazing,-
+includeClearance,-
+timberCertificate,-
+topHeight,80
+leftWidth,80
+rightWidth,80
+bottomHeight,70
+frameDepth,
+"Cill Depth
+cillDepth",
+cillBackDepth,
+cillAngle,9
+cillHornLengthLeft,
+cillHornLengthRight,
+outerJambShapeId,Staff Mould (465)
+frameStopId,Lambs Tongue (47)
+frameGasketColourId,-
+cillStopId,-
+intFramePlantOn,
+extFramePlantOn,
+leftJambPlantOn,
+rightJambPlantOn,
+internalLiningGrooveWidth,
+externalLiningGrooveWidth,
+windowBoardGrooveWidth,
+internalLiningGrooveOffsetFromEdge,
+externalLiningGrooveOffsetFromEdge,
+windowBoardGrooveOffsetFromEdge,
+needWindowboardGroove,-
+needInternalLiningGroove,-
+needExternalLiningGroove,-
+frameHeadStopSize,15
+frameStileStopSize,15
+cillStopSize,
+leftOuterJambExtension,
+rightOuterJambExtension,
+rakeThicknessToMatchHead,-
+trickleVentInFrameCentrePartNo,-
+trickleVentInFrameLeftPartNo,-
+trickleVentInFrameRightPartNo,-
+hasHeadDrip,-
+flagWidth,
+isAllowedInRange,Yes
+muntinStopSize,15
+thicknessInFrame,70
+thicknessInSash,70
+thicknessInFrameFinished,
+isAllowedInRange,Yes
+muntinStopSize,15
+thicknessInFrame,70
+thicknessInSash,70
+thicknessInFrameFinished,
+isMidrail,-
+midrailThickness,
+trickleVentInTransomCentrePartNo,-
+isAllowedInRange,Yes
+thickness,26
+nib,6
+tail,6
+tailLinkType,-
+isAllowedInRange,Yes
+thickness,26
+nib,6
+tail,6
+tailLinkType,-
+isAllowedInRange,Yes
+measurementTypeId,-
+manualWidth,
+manualHeight,
+mechanicalClearanceLeft,3
+mechanicalClearanceRight,3
+mechanicalClearanceTop,3
+mechanicalClearanceBottom,3
+isAllowedInRange,Yes
+topHeight,55
+leftWidth,55
+rightWidth,55
+"Internal Bottom Rail Height
+bottomHeight",63
+defaultMuntinThickness,70
+trickleVentInSashCentrePartNo,-
+trickleVentInFrameAtSashCentrePartNo,-
+sashHeightExt,
+bottomHeightExternal,70
+thickness,45
+typeId,-
+btmRailShapeId,Chamfered (100)
+constantSideOnHeightCalculation,External Height (external_height)
+stormProofOverlap,
+stormProofLipThickness,
+tiltAndTurnLipThickness,
+tiltAndTurnOverlap,
+defaultOpenInSteppedBottomRailOverlap,
+defaultOpenOutSteppedBottomRailOverlap,
+chamferedBottomRailAngle,9
+defaultFlushFrameDepth,85
+defaultFlushFrameHead,55
+defaultFlushFrameJamb,55
+defaultFlushFrameJambType,Solid Profiled (solid_profiled)
+defaultFlushCillHeight,55
+defaultFlushCillDepth,85
+defaultFlushFrameHeadStopSize,15
+defaultFlushFrameStileStopSize,15
+defaultFlushCillStopSize,15
+defaultStormProofFrameDepth,85
+defaultStormProofFrameHead,70
+defaultStormProofFrameJamb,70
+defaultStormProofFrameJambType,Solid Profiled (solid_profiled)
+defaultStormProofCillHeight,55
+defaultStormProofCillDepth,85
+defaultStormProofFrameHeadStopSize,15
+defaultStormProofFrameStileStopSize,15
+defaultStormProofCillStopSize,15
+updateFrameDetailsOnPartChange,-
+updateFrameDetailsOnTypeChange,-
+defaultOpenInFlushCillShape,"shape_001, shape_002, shape_003, shape_004, shape_005, shape_010"
+defaultOpenOutFlushCillShape,"shape_001, shape_002, shape_003, shape_004, shape_005, shape_010"
+defaultStormProofCillShape,"shape_001, shape_002, shape_003, shape_004, shape_005, shape_010"
+defaultTiltAndTurnCillShape,"shape_001, shape_002, shape_003, shape_004, shape_005, shape_010"
+defaultOpenInFlushTransomShape,
+defaultOpenOutFlushTransomShape,
+defaultStormProofTransomShape,
+defaultTiltAndTurnTransomShape,
+hornLength,
+hornTypeShortName,-
+mechanicalClearanceLeft,
+mechanicalClearanceRight,
+mechanicalClearanceTop,
+mechanicalClearanceBottom,
+isAllowedInRange,No
+sashWidth,
+sashHeight,
+sashHeightExt,
+thickness,
+midRail,
+typeId,-
+mechanicalClearanceBetween,
+defaultFrameDepth,
+defaultFrameHead,
+defaultFrameJamb,
+defaultFrameJambType,Solid Profiled (solid_profiled)
+defaultCillHeight,
+defaultCillDepth,
+defaultFrameHeadStopSize,
+defaultFrameStileStopSize,
+defaultCillStopSize,
+updateFrameDetailsOnPartChange,-
+gapBetweenMeetingStiles,
+meetingStileOverlap,
+defaultCillShape,
+mechanicalClearanceLeft,
+mechanicalClearanceRight,
+mechanicalClearanceTop,
+mechanicalClearanceBottom,
+isAllowedInRange,Yes
+sashHeightExt,
+thickness,
+midRail,
+sashLip,
+mechanicalClearanceBetween,
+defaultFrameDepth,
+defaultFrameHead,
+defaultFrameJamb,
+defaultFrameJambType,Solid Profiled (solid_profiled)
+defaultCillHeight,
+defaultCillDepth,
+defaultFrameHeadStopSize,
+defaultFrameStileStopSize,
+defaultCillStopSize,
+updateFrameDetailsOnPartChange,-
+defaultCillShape,
+mechanicalClearanceLeft,
+mechanicalClearanceRight,
+isAllowedInRange,Yes
+sashHeightExt,
+thickness,45
+midRail,35
+midRailTypeId,-
+mechanicalClearanceLeft,
+mechanicalClearanceRight,
+mechanicalClearanceTop,
+mechanicalClearanceBottom,
+isAllowedInRange,Yes
+bayTypeId,-
+isBayPoleRequired,-
+partSpacing,
+isCoupledInTheFactory,-
+hasContinousSubCill,-
+isCornerpostRequired,-
+mechanicalClearanceLeft,
+mechanicalClearanceRight,
+mechanicalClearanceTop,
+mechanicalClearanceBottom,
+isAllowedInRange,No
+sashWidth,
+sashHeight,
+sashHeightExt,
+thickness,45
+midRail,35
+typeId,-
+gapBetweenMeetingStiles,3
+meetingStileOverlap,13
+sashSplitId,-
+leftSashWidth,
+rightSashWidth,
+hasFloatingMullion,-
+mullionThickness,
+mullionStopSizeMaster,
+mullionStopSizeSlave,
+overallMeetingStileWithFloatingMullion,
+mechanicalClearanceLeft,
+mechanicalClearanceRight,
+mechanicalClearanceTop,
+mechanicalClearanceBottom,
+isAllowedInRange,No
+thickness,45
+midRail,
+gapBetweenMeetingStiles,
+meetingStileOverlap,
+sashLip,
+typeId,-
+sashSplitId,-
+topSashHeight,
+bottomSashHeight,
+slopeDepth,
+slopeAngle,
+mockSash,-
+mechanicalClearanceLeft,
+mechanicalClearanceRight,
+mechanicalClearanceTop,
+mechanicalClearanceBottom,
+isAllowedInRange,Yes
+sashHeightExt,
+thickness,45
+midRail,178
+typeId,-
+gapBetweenMeetingStiles,3
+meetingStileOverlap,15
+sashSplitId,-
+leftSashWidth,
+rightSashWidth,
+hasFloatingMullion,-
+mullionThickness,45
+mullionStopSizeMaster,
+mullionStopSizeSlave,
+overallMeetingStileWithFloatingMullion,
+mechanicalClearanceLeft,
+mechanicalClearanceRight,
+mechanicalClearanceTop,
+mechanicalClearanceBottom,
+isAllowedInRange,No
+sashHeightExt,
+thickness,
+midRail,
+sashLip,
+typeId,-
+mechanicalClearanceBetween,
+gapBetweenMeetingStiles,
+meetingStileOverlap,
+sashSplitId,-
+topSashHeight,
+bottomSashHeight,
+slopeDepth,
+slopeAngle,
+mechanicalClearanceLeft,
+mechanicalClearanceRight,
+mechanicalClearanceTop,
+mechanicalClearanceBottom,
+isAllowedInRange,Yes
+sashHeightExt,
+sashSplitId,-
+topSashHeight,
+bottomSashHeight,
+"Midrail Height
+midRail",35
+midRailTypeId,Square (90)
+"Sash Thickness
+thickness",45
+midrailThickness,45
+topHornTypeShortName,No horn (no_horn)
+bottomHornTypeShortName,No horn (no_horn)
+defaultSpiralFrameDepth,140
+defaultCordFrameDepth,140
+defaultSpiralFrameHead,80
+defaultCordFrameHead,80
+defaultSpiralFrameJamb,80
+defaultSpiralFrameJambType,Solid Spiral for Sash (solid_spiral)
+defaultCordFrameJamb,80
+defaultCordFrameJambType,Hollow Box for Sash (hollow_box)
+defaultSpiralCillHeight,70
+defaultCordCillHeight,70
+defaultSpiralCillDepth,140
+defaultCordCillDepth,140
+updateFrameDetailsOnPartChange,Yes
+updateFrameDetailsOnOperationChange,Yes
+defaultSpiralCillShape,"shape_001, shape_002, shape_003, shape_004"
+defaultCordCillShape,"shape_001, shape_002, shape_003, shape_004"
+mechanicalClearanceLeft,3
+mechanicalClearanceRight,3
+mechanicalClearanceTop,3
+mechanicalClearanceBottom,3
+isAllowedInRange,Yes
+topHeight,95
+leftWidth,95
+rightWidth,95
+"Internal Bottom Rail Height
+bottomHeight",186
+defaultMuntinThickness,
+trickleVentInSashCentrePartNo,-
+trickleVentInFrameAtSashCentrePartNo,-
+sashHeightExt,
+bottomHeightExternal,195
+thickness,45
+typeId,-
+btmRailShapeId,Chamfered (100)
+constantSideOnHeightCalculation,External Height (external_height)
+defaultOpenInSteppedBottomRailOverlap,
+defaultOpenOutSteppedBottomRailOverlap,
+chamferedBottomRailAngle,11
+defaultFrameDepth,85
+defaultFrameHead,55
+defaultFrameJamb,55
+defaultFrameJambType,Solid Profiled (solid_profiled)
+defaultCillHeight,25
+defaultCillDepth,150
+defaultFrameHeadStopSize,15
+defaultFrameStileStopSize,15
+defaultCillStopSize,25
+updateFrameDetailsOnPartChange,-
+defaultOpenInCillShape,
+defaultOpenOutCillShape,
+defaultOpenInTransomShape,
+defaultOpenOutTransomShape,
+topHeight,55
+leftWidth,55
+rightWidth,55
+operationId,-
+defaultMuntinThickness,
+trickleVentInSashCentrePartNo,-
+trickleVentInFrameAtSashCentrePartNo,-
+angledTopRailId,-
+angledTopRailHeightReduction,
+mechanicalClearanceTop,
+mechanicalClearanceBottom,
+topHeight,45
+leftWidth,
+rightWidth,
+bottomHeight,
+defaultMuntinThickness,
+trickleVentInSashCentrePartNo,
+trickleVentInFrameAtSashCentrePartNo,-
+bottomHeightExternal,65
+btmRailShapeId,Square (99)
+constantSideOnHeightCalculation,External Height (external_height)
+defaultOpenInSteppedBottomRailOverlap,
+defaultOpenOutSteppedBottomRailOverlap,
+chamferedBottomRailAngle,
+leftWidth,55
+rightWidth,55
+"Internal Bottom Rail Height
+bottomHeight",68
+operationId,-
+defaultMuntinThickness,
+bottomHeightExternal,75
+btmRailShapeId,Chamfered (100)
+constantSideOnHeightCalculation,External Height (external_height)
+defaultOpenInSteppedBottomRailOverlap,
+defaultOpenOutSteppedBottomRailOverlap,
+chamferedBottomRailAngle,9
+angledBottomRailId,-
+angledBottomRailHeightReduction,
+mechanicalClearanceTop,
+mechanicalClearanceBottom,
+topHeight,
+leftWidth,
+rightWidth,
+bottomHeight,
+defaultMuntinThickness,
+trickleVentInSashCentrePartNo,
+trickleVentInFrameAtSashCentrePartNo,-
+bottomHeightExternal,90
+btmRailShapeId,-
+constantSideOnHeightCalculation,External Height (external_height)
+defaultOpenInSteppedBottomRailOverlap,
+defaultOpenOutSteppedBottomRailOverlap,
+chamferedBottomRailAngle,
+isFixedHorizontalSlidingSashPart,-
+topHeight,
+rightWidth,
+"Internal Bottom Rail Height
+bottomHeight",
+defaultMuntinThickness,
+trickleVentInSashCentrePartNo,
+trickleVentInFrameAtSashCentrePartNo,-
+bottomHeightExternal,90
+btmRailShapeId,-
+constantSideOnHeightCalculation,External Height (external_height)
+stormProofOverlap,
+stormProofLipThickness,
+tiltAndTurnLipThickness,
+tiltAndTurnOverlap,
+defaultOpenInSteppedBottomRailOverlap,
+defaultOpenOutSteppedBottomRailOverlap,
+chamferedBottomRailAngle,
+hornLength,
+hornTypeShortName,-
+isMasterLeaf,-
+topHeight,
+leftWidth,
+"Internal Bottom Rail Height
+bottomHeight",
+defaultMuntinThickness,
+trickleVentInSashCentrePartNo,
+trickleVentInFrameAtSashCentrePartNo,-
+bottomHeightExternal,90
+btmRailShapeId,-
+constantSideOnHeightCalculation,External Height (external_height)
+stormProofOverlap,
+stormProofLipThickness,
+tiltAndTurnLipThickness,
+tiltAndTurnOverlap,
+defaultOpenInSteppedBottomRailOverlap,
+defaultOpenOutSteppedBottomRailOverlap,
+chamferedBottomRailAngle,
+hornLength,
+hornTypeShortName,-
+isMasterLeaf,-
+topHeight,55
+leftWidth,55
+rightWidth,55
+defaultMuntinThickness,
+trickleVentInSashCentrePartNo,
+trickleVentInFrameAtSashCentrePartNo,-
+bottomHeightExternal,90
+thickness,45
+btmRailShapeId,-
+constantSideOnHeightCalculation,External Height (external_height)
+stormProofOverlap,
+stormProofLipThickness,
+tiltAndTurnLipThickness,
+tiltAndTurnOverlap,
+defaultOpenInSteppedBottomRailOverlap,
+defaultOpenOutSteppedBottomRailOverlap,
+chamferedBottomRailAngle,
+hornLength,
+hornTypeShortName,-
+isMasterLeaf,-
+topHeight,95
+leftWidth,95
+"Internal Bottom Rail Height
+bottomHeight",186
+defaultMuntinThickness,45
+trickleVentInSashCentrePartNo,
+trickleVentInFrameAtSashCentrePartNo,-
+bottomHeightExternal,195
+btmRailShapeId,Chamfered (100)
+constantSideOnHeightCalculation,External Height (external_height)
+defaultOpenInSteppedBottomRailOverlap,
+defaultOpenOutSteppedBottomRailOverlap,
+chamferedBottomRailAngle,11
+allowOpen,-
+isMasterLeaf,-
+topHeight,
+leftWidth,
+rightWidth,
+defaultMuntinThickness,
+trickleVentInSashCentrePartNo,
+trickleVentInFrameAtSashCentrePartNo,-
+bottomHeightExternal,
+thickness,
+btmRailShapeId,-
+constantSideOnHeightCalculation,External Height (external_height)
+defaultOpenInSteppedBottomRailOverlap,
+defaultOpenOutSteppedBottomRailOverlap,
+chamferedBottomRailAngle,
+allowOpen,-
+isMasterLeaf,-
+topHeight,95
+rightWidth,95
+"Internal Bottom Rail Height
+bottomHeight",186
+defaultMuntinThickness,45
+trickleVentInSashCentrePartNo,
+trickleVentInFrameAtSashCentrePartNo,-
+bottomHeightExternal,195
+btmRailShapeId,Chamfered (100)
+constantSideOnHeightCalculation,External Height (external_height)
+defaultOpenInSteppedBottomRailOverlap,
+defaultOpenOutSteppedBottomRailOverlap,
+chamferedBottomRailAngle,11
+allowOpen,-
+isMasterLeaf,-
+leftWidth,
+rightWidth,
+"Internal Bottom Rail Height
+bottomHeight",
+defaultMuntinThickness,
+bottomHeightExternal,
+thickness,
+btmRailShapeId,-
+constantSideOnHeightCalculation,External Height (external_height)
+defaultOpenInSteppedBottomRailOverlap,
+defaultOpenOutSteppedBottomRailOverlap,
+chamferedBottomRailAngle,
+allowOpen,-
+isMasterLeaf,-
+leftWidth,
+rightWidth,
+"Internal Bottom Rail Height
+bottomHeight",
+defaultMuntinThickness,
+bottomHeightExternal,90
+thickness,45
+btmRailShapeId,-
+constantSideOnHeightCalculation,External Height (external_height)
+stormProofOverlap,
+stormProofLipThickness,
+tiltAndTurnLipThickness,
+tiltAndTurnOverlap,
+defaultOpenInSteppedBottomRailOverlap,
+defaultOpenOutSteppedBottomRailOverlap,
+chamferedBottomRailAngle,
+hornLength,
+hornTypeShortName,-
+isMasterLeaf,-

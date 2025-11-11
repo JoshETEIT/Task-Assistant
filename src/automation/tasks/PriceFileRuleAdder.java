@@ -211,7 +211,7 @@ public class PriceFileRuleAdder extends TaskBase {
         }
     }
     
-    private void createGroupsInOpenPanel(WebDriver driver, Set<String> groups, ProgressUI progressUI) {
+    /*private void createGroupsInOpenPanel(WebDriver driver, Set<String> groups, ProgressUI progressUI) {
         int groupSortOrderCount = 10;
         
         for (String group : groups) {
@@ -220,7 +220,7 @@ public class PriceFileRuleAdder extends TaskBase {
             groupSortOrderCount += 10;
             progressUI.updateStatus("Created group: " + group);
         }
-    }
+    }*/
     
     private void createVariablesInOpenPanel(WebDriver driver, List<VariableInfo> variables, ProgressUI progressUI) {
         for (VariableInfo variable : variables) {

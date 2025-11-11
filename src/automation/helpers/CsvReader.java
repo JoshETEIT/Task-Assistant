@@ -52,21 +52,21 @@ public class CsvReader {
         List<String[]> currentTable = new ArrayList<>();
         tables.add(currentTable);
 
-        int lineIndex = 0;
+        //int lineIndex = 0;
         int skipped = 0;
 
         for (String raw : lines) {
             if (raw == null) continue;
             String line = raw.trim();
             if (line.isEmpty()) {
-                lineIndex++;
+                //lineIndex++;
                 continue;
             }
 
             // Apply global skip lines
             if (skipped < skipLines) {
                 skipped++;
-                lineIndex++;
+                //lineIndex++;
                 continue;
             }
 
@@ -79,13 +79,13 @@ public class CsvReader {
                     tables.add(currentTable);
                 }
                 // ⚠️ Always skip the entire tag line itself
-                lineIndex++;
+                //lineIndex++;
                 continue;
             }
 
             // Normal CSV line
             currentTable.add(parseCsvLine(line));
-            lineIndex++;
+            //lineIndex++;
         }
 
         // Clean up empty tables
