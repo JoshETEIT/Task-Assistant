@@ -207,28 +207,30 @@ public class DefaultValuesExportTask extends TaskBase {
                 checkCancellation();
                 
                 try {
-                    // Get property name from first column
+                    // Get all cells in this row
                     List<WebElement> cells = row.findElements(By.tagName("td"));
                     if (cells.size() == 0) continue;
                     
+                    // Extract ONLY the caption from the first cell (ignore field name)
                     WebElement propertyNameCell = cells.get(0);
-                    String propertyName = propertyNameCell.getText().trim();
+                    String propertyCaption = extractPropertyCaption(propertyNameCell);
                     
-                    if (propertyName.isEmpty()) {
+                    if (propertyCaption.isEmpty()) {
                         continue; // Skip empty rows
                     }
                     
                     // Get value from selected column
+                    String value = "";
                     if (cells.size() > columnIndex) {
                         WebElement valueCell = cells.get(columnIndex);
-                        String value = extractValueFromCell(valueCell);
-                        
-                        PropertyValue propValue = new PropertyValue();
-                        propValue.propertyName = propertyName;
-                        propValue.value = value;
-                        
-                        propertyValues.add(propValue);
+                        value = extractValueFromCell(valueCell);
                     }
+                    
+                    PropertyValue propValue = new PropertyValue();
+                    propValue.propertyName = propertyCaption;
+                    propValue.value = value;
+                    
+                    propertyValues.add(propValue);
                     
                 } catch (Exception e) {
                     System.out.println("Error reading row: " + e.getMessage());
@@ -241,6 +243,24 @@ public class DefaultValuesExportTask extends TaskBase {
         }
         
         return propertyValues;
+    }
+    
+    private String extractPropertyCaption(WebElement propertyNameCell) {
+        try {
+            // Get the caption (title span) - this is what we want
+            List<WebElement> captionSpans = propertyNameCell.findElements(By.className("caption_title"));
+            if (!captionSpans.isEmpty()) {
+                return captionSpans.get(0).getText().trim();
+            }
+            
+            // Fallback: if no caption span, get all text but remove any field name-like text
+            String fullText = propertyNameCell.getText().trim();
+            return fullText;
+            
+        } catch (Exception e) {
+            System.out.println("Error extracting property caption: " + e.getMessage());
+            return "";
+        }
     }
     
     private int getColumnIndex(WebDriver driver, String selectedColumn) {

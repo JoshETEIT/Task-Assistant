@@ -22,6 +22,8 @@ public class TaskRegistry {
         register(new LookupEditorImportTask());
         register(new DefaultIronmongeryImportTask());
         register(new DefaultValuesExportTask());
+        register(new DefaultValuesImportTask());
+     // In TaskRegistry
     }
     
     public static void register(AutomationTask task) {
